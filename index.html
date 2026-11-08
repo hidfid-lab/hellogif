@@ -157,10 +157,10 @@ function setBg(src){const im=new Image();im.crossOrigin='anonymous';
   im.onload=()=>{bg=im;draw()};im.src=src}
 function pickBg(i){setBg(bgUrl(i))}
 
-function applyTpl(i,randomBg){
+function applyTpl(i,randomBg,keepBg){
   const t=TPL[i];curTpl=i;layers=JSON.parse(JSON.stringify(t.layers));filter=t.filter;ov=t.ov;frame=t.frame;
   const b=randomBg?Math.floor(Math.random()*BGS.length):t.bg;
-  setBg(bgUrl(b));syncAll();return b}
+  if(!keepBg)setBg(bgUrl(b));syncAll();return b}
 
 function syncAll(){
   $('inpOv').value=ov;$('vOv').textContent=ov+'%';$('inpVg').value=vg;$('vVg').textContent=vg+'%';
@@ -260,7 +260,7 @@ function saveBlob(bl){const name=`Stylish_Greeting_${Date.now()}.png`;
 function init(){
   $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
     <img crossorigin="anonymous" loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
-  $('tplSel').innerHTML=TPL.map((t,i)=>`<button onclick="applyTpl(${i})" class="chip text-left h-16"><div class="font-semibold">${t.name}</div><div class="text-[10px] text-neutral-500 uppercase">${t.id}</div></button>`).join('');
+  $('tplSel').innerHTML=TPL.map((t,i)=>`<button onclick="applyTpl(${i},false,true)" class="chip text-left h-16"><div class="font-semibold">${t.name}</div><div class="text-[10px] text-neutral-500 uppercase">${t.id}</div></button>`).join('');
   document.querySelectorAll('#tabs .tab').forEach(b=>b.onclick=()=>{showTab(+b.dataset.t);b.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'})});
   document.querySelectorAll('#layerSel .chip').forEach(b=>b.onclick=()=>{layer=+b.dataset.l;syncLayer()});
   document.querySelectorAll('#fltSel .chip').forEach(b=>b.onclick=()=>{filter=b.dataset.f;mark('#fltSel','f',filter);draw()});
