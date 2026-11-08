@@ -119,7 +119,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
 
 <script>
 const $=id=>document.getElementById(id);
-const cv=$('cv'),mctx=cv.getContext('2d'),T2=2*Math.PI,CF='filter' in mctx;let ctx=mctx;const oa=document.createElement('canvas'),ob=document.createElement('canvas');let TD=.8,actSet=[];
+const cv=$('cv'),mctx=cv.getContext('2d'),T2=2*Math.PI,CF='filter' in mctx;let ctx=mctx;const oa=document.createElement('canvas'),ob=document.createElement('canvas');let TD=.8,actSet=[],gv=1,ivs=0;
 let W=540,H=960,asp='9:16',Q=540,clips=[],sel=-1,selT=-1,playing=false,raf=0,T0=0,curIdx=-1,exp=false,uid=0,mFile=null,mBuf=null,mAud=null,drag=null;
 const PT=(()=>{let q=7;const r=()=>(q=(q*16807)%2147483647)/2147483647;return Array.from({length:70},()=>({x:r(),y:r(),r:r(),c:1+Math.floor(r()*2),ph:r()*6.28}))})();
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
@@ -301,7 +301,7 @@ function redraw(){if(playing||exp)return;const c=cur();
 
 // ---------- 播放引擎 ----------
 const rTo=(cn,fn)=>{const old=ctx;ctx=cn.getContext('2d');fn();ctx=old};
-function setVol(i,f){const c=clips[i];if(exp&&c.g)c.g.gain.value=c.vol/100*f;else if(c.type==='video'&&c.el)c.el.volume=Math.max(0,Math.min(1,c.vol/100*f))}
+function setVol(i,f){const c=clips[i];if(exp&&c.g)c.g.gain.value=c.vol/100*f;else if(c.type==='video'&&c.el)c.el.volume=Math.max(0,Math.min(1,c.vol/100*f*gv))}
 function syncActive(act){clips.forEach((c,j)=>{const on=act.includes(j);
   if(on&&!actSet.includes(j)&&c.type==='video'){if(!exp){c.el.muted=!c.keep}c.el.playbackRate=c.speed;c.el.currentTime=c.start;c.el.play().catch(()=>{})}
   if(!on){if(c.g)c.g.gain.value=0;if(c.type==='video'&&actSet.includes(j))c.el.pause()}});actSet=act.slice()}
@@ -319,11 +319,12 @@ function frameAt(e){const L=tl(),n=clips.length;let act=[];
   syncActive(act);
   if(act.length===1){setVol(act[0],1);drawClip(clips[act[0]],Math.min(e-L[act[0]].s,clips[act[0]].dur),act[0],false);return}
   compose(act[0],act[1],e,L)}
-function musicPlay(){if(!mAud)return;mAud.currentTime=+$('mStart').value;mAud.volume=$('mVol').value/100;mAud.play().catch(()=>{})}
+function musicPlay(){if(!mAud)return;clearInterval(ivs);mAud.volume=0;mAud.currentTime=+$('mStart').value;mAud.play().catch(()=>{})}
 function play(){if(playing||!clips.length)return;playing=true;actSet=[];const tot=total();T0=performance.now();musicPlay();
-  const loop=()=>{if(!playing)return;let e=(performance.now()-T0)/1000;if(e>=tot){T0=performance.now();e=0;curIdx=-1;musicPlay()}
+  const loop=()=>{if(!playing)return;let e=(performance.now()-T0)/1000;if(e>=tot){T0=performance.now();e=0;musicPlay()}
+    gv=Math.min(1,(performance.now()-T0)/400);if(mAud)mAud.volume=$('mVol').value/100*gv;
     frameAt(e);$('tm').textContent=fmt(e)+' / '+fmt(tot);raf=requestAnimationFrame(loop)};loop()}
-function stop(){playing=false;cancelAnimationFrame(raf);actSet=[];clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});if(mAud)mAud.pause();$('tm').textContent='';redraw()}
+function stop(){playing=false;gv=1;cancelAnimationFrame(raf);actSet=[];clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});if(mAud&&!mAud.paused){const m=mAud;let v=m.volume;clearInterval(ivs);ivs=setInterval(()=>{v-=.12;if(v<=0){clearInterval(ivs);m.pause()}else m.volume=v},16)}$('tm').textContent='';redraw()}
 
 // ---------- 音樂與對齊 ----------
 function setMusicRange(){if(!mAud||!isFinite(mAud.duration))return;const m=Math.max(0,mAud.duration-total()),r=$('mStart');r.max=m;if(+r.value>m)r.value=m;$('vMs').textContent=fmt(+r.value);
