@@ -246,15 +246,15 @@ function syncImg(){$('inpScale').value=img.s;$('vScale').textContent=img.s+'%';$
 function showTab(n){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',+b.dataset.t===n));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('hidden',+p.dataset.p!==n))}
 
-function showSave(bl){const u=URL.createObjectURL(bl);let o=$('saveBox');
+function showSave(bl,name){const u=URL.createObjectURL(bl);let o=$('saveBox');
   if(!o){o=document.createElement('div');o.id='saveBox';o.style.cssText='position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px';document.body.appendChild(o)}
-  o.innerHTML=`<p style="color:#fbbf24;font-size:14px">長按下方圖片，選擇「儲存圖片」</p><img src="${u}" style="max-height:70vh;max-width:100%;border-radius:8px"><button id="saveClose" style="padding:8px 24px;border-radius:999px;background:#f59e0b;color:#111;font-weight:600">關閉</button>`;
-  o.style.display='flex';$('saveClose').onclick=()=>{o.style.display='none'}}
+  o.innerHTML=`<p style="color:#fbbf24;font-size:14px">長按下方圖片，選擇「儲存圖片」或「下載圖片」，即可存到相簿</p><img src="${u}" style="max-height:70vh;max-width:100%;border-radius:8px"><button id="saveShare" style="padding:8px 24px;border-radius:999px;background:#262626;color:#eee;border:1px solid #404040">分享 / 存到檔案</button><button id="saveClose" style="padding:8px 24px;border-radius:999px;background:#f59e0b;color:#111;font-weight:600">關閉</button>`;
+  o.style.display='flex';$('saveShare').onclick=()=>{const f=new File([bl],name,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});else alert('此瀏覽器不支援分享，請長按圖片儲存。')};
+  $('saveClose').onclick=()=>{o.style.display='none'}}
 function saveBlob(bl){const name=`Stylish_Greeting_${Date.now()}.png`;
   if(matchMedia('(pointer:coarse)').matches){
-    const f=new File([bl],name,{type:'image/png'});
-    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(e=>{if(e.name!=='AbortError')showSave(bl)});return}
-    showSave(bl);return}
+    showSave(bl,name);return}
   const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
 function init(){
