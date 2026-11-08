@@ -21,6 +21,10 @@ select,textarea{width:100%;padding:8px;background:#262626;border:1px solid #4040
 input[type=range]{width:100%;accent-color:#f59e0b}
 label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
 .row{display:flex;justify-content:space-between}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.7)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+.newbtn{animation:glow 1.8s infinite}
+.gs{display:flex;gap:12px;align-items:flex-start;padding:12px;background:#262626;border-radius:14px}
+.gs b{flex:none;width:30px;height:30px;border-radius:50%;background:#f59e0b;color:#111;display:flex;align-items:center;justify-content:center;font-size:16px}
 </style>
 </head>
 <body>
@@ -39,6 +43,10 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     </div>
     <button id="btnDownload" class="px-4 py-2 rounded-full bg-amber-500 text-neutral-950 font-semibold text-sm whitespace-nowrap">匯出</button>
   </div>
+  <div class="w-full max-w-[520px] mt-2 grid grid-cols-2 gap-2">
+    <button id="gGuide" class="py-2 rounded-full bg-neutral-800 border border-neutral-600 text-sm font-semibold">📖 使用說明</button>
+    <button id="gGoGif" class="newbtn py-2 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-neutral-950 text-sm font-bold">🎞️ 做成會動的圖（新）</button>
+  </div>
 </section>
 
 <!-- 右/下：獨立滾動控制區 -->
@@ -48,7 +56,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     <button class="tab chip" data-t="1">✍️ 標題與風格</button>
     <button class="tab chip" data-t="2">📍 圖片與位置微調</button>
     <button class="tab chip" data-t="3">🎨 特效與相框</button>
-    <button class="tab chip" data-t="4">🎞️ GIF 動畫</button>
+    <button class="tab chip newbtn" data-t="4">🎞️ GIF 動畫 <span class="ml-1 px-1.5 rounded bg-red-500 text-white text-[10px]">新功能</span></button>
   </div>
   <div class="flex-1 overflow-y-auto p-3 lg:p-5 space-y-4">
 
@@ -105,6 +113,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
 
     <!-- 5 GIF -->
     <div class="pane space-y-4 hidden" data-p="4"><div class="card space-y-3"><div class="h">GIF 動畫設定</div>
+      <p class="text-sm text-amber-200 bg-amber-500/10 rounded-lg p-2">三步驟：① 選下面的效果　② 按「▶ 預覽動畫」看看　③ 按「🎞️ 生成 GIF」</p>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="l">文字動畫</label><select id="gFx"><option value="fade">逐行淡入</option><option value="rise">上浮淡入</option><option value="none">無</option></select></div>
         <div><label class="l">長度</label><select id="gDur"><option value="2">2 秒</option><option value="3" selected>3 秒</option><option value="4">4 秒</option><option value="6">6 秒</option></select></div>
@@ -140,6 +149,21 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
 </section>
 </div>
 
+<div id="guide" class="hidden fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-3">
+  <div class="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-lg max-h-[92vh] flex flex-col">
+    <div class="px-5 py-4 border-b border-neutral-800 text-xl font-bold text-amber-400">📖 使用說明（照著做就會了）</div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-3 text-[17px] leading-relaxed">
+      <div class="gs"><b>1</b><div><div class="font-bold text-amber-300">選一張背景照片</div>點上方「🖼️ 背景圖片與儲存」，點一張小圖就會換。想用自己的照片，按「⬆ 上傳照片」。</div></div>
+      <div class="gs"><b>2</b><div><div class="font-bold text-amber-300">選樣式、改文字</div>點「✍️ 標題與風格」，先點一個「設計模板」，再在「文字內容」框裡改成想說的話。可以改字的大小和顏色。</div></div>
+      <div class="gs"><b>3</b><div><div class="font-bold text-amber-300">移動文字的位置</div>直接用手指<b style="display:inline;background:none;color:#fbbf24;width:auto;height:auto"> 按住圖上的文字不放，再拖到想要的地方</b>，放開就固定了。弄亂了可以到「📍 圖片與位置微調」按「重設文字位置」。</div></div>
+      <div class="gs"><b>4</b><div><div class="font-bold text-amber-300">放大、移動照片</div>到「📍 圖片與位置微調」，拉「圖片縮放」可以把照片放大，拉「水平」「垂直」可以移動照片，找到最好看的位置。</div></div>
+      <div class="gs" style="background:#3b2a12;border:1px solid #f59e0b"><b>5</b><div><div class="font-bold text-amber-300">🎞️ 新功能：做成會動的圖（GIF）</div>點「🎞️ 做成會動的圖」。可以選下雪、花瓣飄落、星光閃爍等效果，按「▶ 預覽動畫」先看看，滿意再按「🎞️ 生成 GIF」，等一下就好了。傳 LINE 給親友特別有感覺！</div></div>
+      <div class="gs"><b>6</b><div><div class="font-bold text-amber-300">存起來</div><b style="display:inline;background:none;color:#fbbf24;width:auto;height:auto">靜態圖</b>按右上或畫面下方的「匯出」。手機會跳出一張大圖，<b style="display:inline;background:none;color:#fbbf24;width:auto;height:auto">用手指按住那張圖不放</b>，選「儲存圖片」或「下載圖片」就存進相簿了。</div></div>
+      <div class="text-sm text-neutral-400 px-1">小提醒：不知道怎麼辦時，按左下角「隨機靈感 ✦」，會自動幫你配好一張。</div>
+    </div>
+    <div class="p-4 border-t border-neutral-800"><button id="guideClose" class="w-full py-3 rounded-full bg-amber-500 text-neutral-950 font-bold text-lg">我知道了，開始做</button></div>
+  </div>
+</div>
 <script>
 const $=id=>document.getElementById(id);
 const W=800,H=1000,cv=$('cv'),ctx=cv.getContext('2d');cv.width=W;cv.height=H;
@@ -322,7 +346,12 @@ async function makeGif(){
     const bl=new Blob([gif.bytes()],{type:'image/gif'});st.textContent=`完成：${(bl.size/1024).toFixed(0)} KB`;saveBlob(bl,'gif')}
   catch(e){anim.t=null;exporting=false;draw();st.textContent='生成失敗：背景圖片可能受跨網域限制，請 Ctrl+F5 重新整理，或改用上傳的照片。'}
   btn.disabled=false}
-function bindGif(){$('gPlay').onclick=play;$('gStop').onclick=stop;$('gMake').onclick=makeGif;
+function openGuide(){$('guide').classList.remove('hidden')}
+function closeGuide(){$('guide').classList.add('hidden');try{localStorage.setItem('guideSeen','1')}catch(e){}}
+function bindGif(){$('gGuide').onclick=openGuide;$('guideClose').onclick=closeGuide;
+  $('gGoGif').onclick=()=>{showTab(4);document.querySelector('.tab[data-t="4"]').scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'})};
+  try{if(!localStorage.getItem('guideSeen'))openGuide()}catch(e){}
+  $('gPlay').onclick=play;$('gStop').onclick=stop;$('gMake').onclick=makeGif;
   document.querySelectorAll('#tabs .tab').forEach(b=>b.addEventListener('click',()=>{if(+b.dataset.t!==4&&playing)stop()}))}
 function init(){
   $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
