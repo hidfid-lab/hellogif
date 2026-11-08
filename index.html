@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>時髦語錄 ‧ 高質感問候圖產生器</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Serif+TC:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Cinzel:wght@400;600;800&family=Montserrat:wght@200;300;400;600&display=swap" rel="stylesheet">
+<style>
+body{background:#121212;color:#e8e6e1;font-family:'Noto Sans TC',sans-serif}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#444;border-radius:3px}
+canvas{touch-action:none}
+.tabs{scrollbar-width:none;scroll-snap-type:x proximity}.tabs::-webkit-scrollbar{display:none}
+.tab{scroll-snap-align:start;flex:none}
+.tab.on{background:#f59e0b;color:#111;border-color:#f59e0b}
+.card{background:#171717;border:1px solid #262626;border-radius:16px;padding:16px}
+.h{font-size:12px;color:#fbbf24;letter-spacing:.15em;font-weight:600;margin-bottom:10px}
+.chip{padding:8px;border-radius:10px;background:#262626;border:1px solid #404040;font-size:12px;color:#d4d4d4}
+.chip.on{border-color:#f59e0b;color:#fbbf24}
+select,textarea{width:100%;padding:8px;background:#262626;border:1px solid #404040;border-radius:10px;color:#eee;font-size:13px}
+input[type=range]{width:100%;accent-color:#f59e0b}
+label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
+.row{display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="h-screen flex flex-col lg:flex-row">
+
+<!-- 左/上：固定畫布 -->
+<section class="shrink-0 lg:w-1/2 h-[46vh] lg:h-full flex flex-col items-center p-3 lg:p-6 bg-neutral-950 border-b lg:border-b-0 lg:border-r border-neutral-800">
+  <div class="flex-1 min-h-0 w-full flex items-center justify-center">
+    <canvas id="cv" style="height:100%;width:auto;max-width:100%" class="rounded-xl shadow-2xl border border-neutral-800 cursor-move"></canvas>
+  </div>
+  <div class="w-full max-w-[520px] mt-3 flex items-center gap-2">
+    <button id="btnRandom" class="px-4 py-2 rounded-full bg-neutral-800 border border-neutral-700 text-sm whitespace-nowrap">隨機靈感 ✦</button>
+    <div class="flex-1 min-w-0 flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl p-1.5">
+      <img id="rndThumb" class="w-9 h-9 rounded-lg object-cover bg-neutral-800" alt="">
+      <div class="min-w-0"><div id="rndName" class="text-xs text-amber-400 truncate"></div><div id="rndText" class="text-[11px] text-neutral-400 truncate"></div></div>
+    </div>
+    <button id="btnDownload" class="px-4 py-2 rounded-full bg-amber-500 text-neutral-950 font-semibold text-sm whitespace-nowrap">匯出</button>
+  </div>
+</section>
+
+<!-- 右/下：獨立滾動控制區 -->
+<section class="flex-1 min-h-0 flex flex-col">
+  <div class="tabs flex gap-2 overflow-x-auto px-3 py-3 border-b border-neutral-800 bg-neutral-900/80" id="tabs">
+    <button class="tab on chip" data-t="0">🖼️ 背景圖片與儲存</button>
+    <button class="tab chip" data-t="1">✍️ 標題與風格</button>
+    <button class="tab chip" data-t="2">📍 圖片與位置微調</button>
+    <button class="tab chip" data-t="3">🎨 特效與相框</button>
+  </div>
+  <div class="flex-1 overflow-y-auto p-3 lg:p-5 space-y-4">
+
+    <!-- 1 背景 -->
+    <div class="pane space-y-4" data-p="0">
+      <div class="card">
+        <div class="row items-center mb-2"><div class="h !mb-0">精選圖庫 (10)</div>
+          <label class="chip cursor-pointer">⬆ 上傳照片<input type="file" id="bgUpload" accept="image/*" class="hidden"></label></div>
+        <div class="grid grid-cols-5 gap-2" id="bgGallery"></div>
+      </div>
+      <div class="card">
+        <div class="h">我的照片庫（儲存於本機瀏覽器）</div>
+        <div class="grid grid-cols-5 gap-2" id="myGallery"></div>
+        <p id="myEmpty" class="text-xs text-neutral-500">尚未上傳照片。上傳後會自動保存，下次開啟仍在。</p>
+      </div>
+    </div>
+
+    <!-- 2 標題與風格 -->
+    <div class="pane space-y-4 hidden" data-p="1">
+      <div class="card"><div class="h">設計模板</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="tplSel"></div></div>
+      <div class="card space-y-3">
+        <div class="h">文字內容</div>
+        <div class="grid grid-cols-3 gap-2" id="layerSel">
+          <button class="chip on" data-l="0">主語錄</button><button class="chip" data-l="1">英文小標</button><button class="chip" data-l="2">落款 / 日期</button>
+        </div>
+        <textarea id="inpText" rows="2" class="font-serif"></textarea>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="l">字型風格</label><select id="inpFont">
+            <option value="'Noto Serif TC', serif">宋體 / 明體</option><option value="'Cormorant Garamond', serif">Garamond</option>
+            <option value="'Cinzel', serif">Cinzel</option><option value="'Noto Sans TC', sans-serif">極簡無襯線</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option></select></div>
+          <div><label class="l">文字顏色</label><input type="color" id="inpColor" class="w-full h-9 bg-transparent"></div>
+          <div><label class="l">字級 <span id="vSize"></span></label><input type="range" id="inpSize" min="12" max="96"></div>
+          <div><label class="l">字距</label><input type="range" id="inpSpace" min="0" max="25"></div>
+          <div><label class="l">對齊</label><select id="inpAlign"><option value="center">置中</option><option value="left">靠左</option><option value="right">靠右</option></select></div>
+          <div><label class="l">陰影 / 光芒</label><select id="inpShadow"><option value="soft">柔和深影</option><option value="glow">金光霧暈</option><option value="none">無</option></select></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 圖片與位置 -->
+    <div class="pane space-y-4 hidden" data-p="2">
+      <div class="card space-y-3">
+        <div class="h">背景圖片</div>
+        <div><label class="l row"><span>圖片縮放 (Scale)</span><span id="vScale">100%</span></label><input type="range" id="inpScale" min="100" max="300" value="100"></div>
+        <div><label class="l row"><span>水平位移 (X)</span><span id="vOx">0</span></label><input type="range" id="inpOx" min="-50" max="50" value="0"></div>
+        <div><label class="l row"><span>垂直位移 (Y)</span><span id="vOy">0</span></label><input type="range" id="inpOy" min="-50" max="50" value="0"></div>
+        <button id="btnResetImg" class="chip w-full">重置圖片位置</button>
+      </div>
+      <div class="card"><div class="h">文字位置</div>
+        <p class="text-xs text-neutral-400 mb-2">可直接在畫布上拖曳文字。</p>
+        <button id="btnResetPos" class="chip w-full">重設文字位置</button></div>
+    </div>
+
+    <!-- 4 特效與相框 -->
+    <div class="pane space-y-4 hidden" data-p="3">
+      <div class="card space-y-3">
+        <div class="h">藝術色調濾鏡</div>
+        <div class="grid grid-cols-5 gap-2" id="fltSel">
+          <button class="chip" data-f="none">原色</button><button class="chip" data-f="film">底片暖</button><button class="chip" data-f="morandi">莫蘭迪</button><button class="chip" data-f="bw">黑白</button><button class="chip" data-f="sunset">金霞</button>
+        </div>
+        <div><label class="l row"><span>背景暗度</span><span id="vOv"></span></label><input type="range" id="inpOv" min="0" max="80"></div>
+        <div><label class="l row"><span>暗角 Vignette</span><span id="vVg"></span></label><input type="range" id="inpVg" min="0" max="100"></div>
+      </div>
+      <div class="card"><div class="h">框線與相框</div>
+        <div class="grid grid-cols-2 gap-2" id="frmSel">
+          <button class="chip" data-r="none">無邊框</button><button class="chip" data-r="fineLine">法式金細線框</button>
+          <button class="chip" data-r="polaroid">拍立得框</button><button class="chip" data-r="editorial">雜誌加強框</button>
+        </div></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const W=800,H=1000,cv=$('cv'),ctx=cv.getContext('2d');cv.width=W;cv.height=H;
+const U=id=>`https://images.unsplash.com/photo-${id}?q=80&w=1000&auto=format&fit=crop`;
+const PHOTOS=[["靜謐陽光","1507525428034-b723cf961d3e"],["晨光咖啡","1495474472287-4d71bcdd2085"],["柔光光影","1513836279014-a89f7a76ae86"],["深邃海浪","1505118380757-91f5f5632de0"],["極簡植物影","1497250681960-ef046c08a56e"],["沉靜藝術建築","1513694203232-719a280e022f"],["日落彩雲","1534447677768-be436bb09401"],["溫潤木質細節","1517646287270-a5a9ca602e5c"],["寧靜雪山峰","1486870591958-9b9d0d1dda99"],["莫蘭迪抽象花","1579783900882-c0d3dad7b119"]].map(p=>({name:p[0],url:U(p[1])}));
+const BGS=PHOTOS;
+const bgUrl=i=>BGS[i].url;
+
+const TPL=[
+{id:"editorial",name:"雜誌封面風",bg:0,filter:"film",ov:35,frame:"editorial",layers:[
+{text:"MORNING\nREFLECTIONS",x:400,y:320,fontSize:52,color:"#FFFFFF",fontFamily:"'Cinzel', serif",letterSpacing:8,align:"center",shadow:"soft"},
+{text:"願你今日沉靜而有力量，擁抱晨光",x:400,y:560,fontSize:26,color:"#E8E6E1",fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"soft"},
+{text:"ISSUE NO. 08 ‧ GOOD MORNING",x:400,y:880,fontSize:16,color:"#C5A059",fontFamily:"'Montserrat', sans-serif",letterSpacing:6,align:"center",shadow:"none"}]},
+{id:"film",name:"極簡底片風格",bg:1,filter:"film",ov:25,frame:"fineLine",layers:[
+{text:"歲月靜好 ‧ 心安即是歸處",x:400,y:440,fontSize:36,color:"#F8F9FA",fontFamily:"'Noto Serif TC', serif",letterSpacing:6,align:"center",shadow:"soft"},
+{text:"CHASE THE LIGHT AND BE THE LIGHT",x:400,y:520,fontSize:16,color:"#C5A059",fontFamily:"'Cormorant Garamond', serif",letterSpacing:8,align:"center",shadow:"none"},
+{text:"2026.11.08 ‧ WARM REGARDS",x:400,y:860,fontSize:14,color:"#A3A3A3",fontFamily:"'Montserrat', sans-serif",letterSpacing:5,align:"center",shadow:"none"}]},
+{id:"polaroid",name:"拍立得時髦記憶",bg:4,filter:"morandi",ov:15,frame:"polaroid",layers:[
+{text:"保持熱愛 ‧ 奔赴山海",x:400,y:420,fontSize:38,color:"#212529",fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"none"},
+{text:"FIND BEAUTY IN EVERY SINGLE DAY",x:400,y:490,fontSize:15,color:"#666666",fontFamily:"'Cormorant Garamond', serif",letterSpacing:6,align:"center",shadow:"none"},
+{text:"— 獻給美好的一天 —",x:400,y:820,fontSize:18,color:"#888888",fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"none"}]},
+{id:"zen",name:"禪意莫蘭迪",bg:3,filter:"sunset",ov:45,frame:"none",layers:[
+{text:"心寬路就寬\n平安便是福",x:400,y:400,fontSize:44,color:"#FFFFFF",fontFamily:"'Noto Serif TC', serif",letterSpacing:8,align:"center",shadow:"glow"},
+{text:"PEACEFUL MIND ‧ ABUNDANT LIFE",x:400,y:540,fontSize:16,color:"#FDE68A",fontFamily:"'Cinzel', serif",letterSpacing:6,align:"center",shadow:"none"},
+{text:"祝福您今日萬事順遂",x:400,y:860,fontSize:18,color:"#E2E8F0",fontFamily:"'Noto Sans TC', sans-serif",letterSpacing:4,align:"center",shadow:"soft"}]}];
+const DEFY=[420,520,860];
+
+let bg=new Image(),filter='film',ov=30,vg=40,frame='editorial',layer=0,exporting=false;
+let img={s:100,x:0,y:0},layers=[],curTpl=0;
+let drag=-1,dx=0,dy=0;
+
+function setBg(src){const im=new Image();im.crossOrigin='anonymous';
+  im.onload=()=>{bg=im;draw()};im.src=src}
+function pickBg(i){setBg(bgUrl(i))}
+
+function applyTpl(i,randomBg){
+  const t=TPL[i];curTpl=i;layers=JSON.parse(JSON.stringify(t.layers));filter=t.filter;ov=t.ov;frame=t.frame;
+  const b=randomBg?Math.floor(Math.random()*BGS.length):t.bg;
+  setBg(bgUrl(b));syncAll();return b}
+
+function syncAll(){
+  $('inpOv').value=ov;$('vOv').textContent=ov+'%';$('inpVg').value=vg;$('vVg').textContent=vg+'%';
+  mark('#fltSel','f',filter);mark('#frmSel','r',frame);syncLayer()}
+function mark(sel,k,v){document.querySelectorAll(sel+' .chip').forEach(b=>b.classList.toggle('on',b.dataset[k]===v))}
+function syncLayer(){const l=layers[layer];if(!l)return;
+  $('inpText').value=l.text;$('inpFont').value=l.fontFamily;$('inpColor').value=l.color;
+  $('inpSize').value=l.fontSize;$('vSize').textContent=l.fontSize+'px';$('inpSpace').value=l.letterSpacing;
+  $('inpAlign').value=l.align;$('inpShadow').value=l.shadow;
+  document.querySelectorAll('#layerSel .chip').forEach(b=>b.classList.toggle('on',+b.dataset.l===layer));draw()}
+
+// ---------- IndexedDB ----------
+let db=null;
+function openDB(){return new Promise(res=>{try{const q=indexedDB.open('greetingDB',1);
+  q.onupgradeneeded=()=>q.result.createObjectStore('photos',{keyPath:'id',autoIncrement:true});
+  q.onsuccess=()=>{db=q.result;res(true)};q.onerror=()=>res(false)}catch(e){res(false)}})}
+const tx=(m)=>db.transaction('photos',m).objectStore('photos');
+function dbAll(){return new Promise(res=>{if(!db)return res([]);const q=tx('readonly').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>res([])})}
+function dbAdd(url){return new Promise(res=>{if(!db)return res();const q=tx('readwrite').add({url,t:Date.now()});q.onsuccess=()=>res();q.onerror=()=>res()})}
+function dbDel(id){return new Promise(res=>{const q=tx('readwrite').delete(id);q.onsuccess=()=>res();q.onerror=()=>res()})}
+let mine=[];
+async function renderMine(){
+  mine=(await dbAll()).reverse();
+  $('myEmpty').style.display=mine.length?'none':'block';
+  $('myGallery').innerHTML=mine.map((p,i)=>`<div class="relative aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer">
+   <img src="${p.url}" class="w-full h-full object-cover" onclick="setBg(mine[${i}].url)">
+   <button onclick="delMine(${p.id})" class="absolute top-0 right-0 bg-black/70 text-white text-[10px] px-1.5 rounded-bl">✕</button></div>`).join('')}
+async function delMine(id){await dbDel(id);renderMine()}
+function onUpload(file){
+  const rd=new FileReader();rd.onload=e=>{const im=new Image();im.onload=async()=>{
+    const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    const url=c.toDataURL('image/jpeg',.88);await dbAdd(url);await renderMine();setBg(url);img={s:100,x:0,y:0};syncImg()};im.src=e.target.result};rd.readAsDataURL(file)}
+
+// ---------- 繪製 ----------
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  if(bg.complete&&bg.naturalWidth){
+    const ir=bg.naturalWidth/bg.naturalHeight,cr=W/H;let rw,rh;
+    if(ir>cr){rh=H;rw=H*ir}else{rw=W;rh=W/ir}
+    rw*=img.s/100;rh*=img.s/100;
+    ctx.drawImage(bg,W/2+img.x*W/100-rw/2,H/2+img.y*H/100-rh/2,rw,rh)
+  }else{ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H)}
+  applyFilter();
+  if(ov>0){ctx.fillStyle=`rgba(0,0,0,${ov/100})`;ctx.fillRect(0,0,W,H)}
+  if(vg>0){const g=ctx.createRadialGradient(W/2,H/2,W*.3,W/2,H/2,W*.75);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${vg/100})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+  drawFrame();
+  layers.forEach((l,idx)=>{if(!l.text.trim())return;
+    ctx.save();ctx.font=`400 ${l.fontSize}px ${l.fontFamily}`;ctx.fillStyle=l.color;ctx.textBaseline='middle';
+    if(l.shadow==='soft'){ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=12;ctx.shadowOffsetY=4}
+    else if(l.shadow==='glow'){ctx.shadowColor='rgba(197,160,89,.8)';ctx.shadowBlur=18}
+    const lines=l.text.split('\n'),lh=l.fontSize*1.35,th=lines.length*lh,sy=l.y-th/2+lh/2;
+    lines.forEach((ln,i)=>spaced(ln,l.x,sy+i*lh,l.letterSpacing||0,l.align||'center'));
+    if(idx===layer&&!exporting){ctx.shadowColor='transparent';ctx.strokeStyle='rgba(197,160,89,.6)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(l.x-180,l.y-th/2-10,360,th+20)}
+    ctx.restore()})}
+function applyFilter(){
+  const f=(c)=>{ctx.fillStyle=c;ctx.fillRect(0,0,W,H)};
+  if(filter==='film')f('rgba(245,158,11,.08)');
+  else if(filter==='morandi')f('rgba(148,163,184,.12)');
+  else if(filter==='bw'){try{const d=ctx.getImageData(0,0,W,H),a=d.data;for(let i=0;i<a.length;i+=4){const v=(a[i]+a[i+1]+a[i+2])/3;a[i]=a[i+1]=a[i+2]=v}ctx.putImageData(d,0,0)}catch(e){}}
+  else if(filter==='sunset'){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(239,68,68,.12)');g.addColorStop(1,'rgba(245,158,11,.15)');f(g)}}
+function spaced(t,x,y,ls,al){
+  ctx.textAlign=al;
+  if(!ls){ctx.fillText(t,x,y);return}
+  const ch=[...t],ws=ch.map(c=>ctx.measureText(c).width),tw=ws.reduce((a,b)=>a+b,0)+ls*(ch.length-1);
+  let cx=al==='center'?x-tw/2:al==='right'?x-tw:x;ctx.textAlign='left';
+  ch.forEach((c,i)=>{ctx.fillText(c,cx,y);cx+=ws[i]+ls})}
+function drawFrame(){ctx.save();
+  if(frame==='fineLine'){ctx.strokeStyle='rgba(197,160,89,.6)';ctx.lineWidth=2;ctx.strokeRect(30,30,W-60,H-60)}
+  else if(frame==='polaroid'){ctx.fillStyle='#F8F9FA';ctx.fillRect(0,0,W,24);ctx.fillRect(0,0,24,H);ctx.fillRect(W-24,0,24,H);ctx.fillRect(0,H-180,W,180)}
+  else if(frame==='editorial'){ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(40,50);ctx.lineTo(40,H-50);ctx.moveTo(W-40,50);ctx.lineTo(W-40,H-50);ctx.stroke()}
+  ctx.restore()}
+
+// ---------- 拖曳 ----------
+function pos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function down(e){const p=pos(e);
+  for(let i=layers.length-1;i>=0;i--){const l=layers[i];
+    if(Math.hypot(p.x-l.x,p.y-l.y)<120){drag=i;layer=i;dx=p.x-l.x;dy=p.y-l.y;syncLayer();break}}}
+function move(e){if(drag<0)return;const p=pos(e);layers[drag].x=p.x-dx;layers[drag].y=p.y-dy;draw()}
+function up(){drag=-1}
+
+function syncImg(){$('inpScale').value=img.s;$('vScale').textContent=img.s+'%';$('inpOx').value=img.x;$('vOx').textContent=img.x;$('inpOy').value=img.y;$('vOy').textContent=img.y;draw()}
+function showTab(n){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',+b.dataset.t===n));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('hidden',+p.dataset.p!==n))}
+
+function init(){
+  $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
+    <img loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
+  $('tplSel').innerHTML=TPL.map((t,i)=>`<button onclick="applyTpl(${i})" class="chip text-left h-16"><div class="font-semibold">${t.name}</div><div class="text-[10px] text-neutral-500 uppercase">${t.id}</div></button>`).join('');
+  document.querySelectorAll('#tabs .tab').forEach(b=>b.onclick=()=>{showTab(+b.dataset.t);b.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'})});
+  document.querySelectorAll('#layerSel .chip').forEach(b=>b.onclick=()=>{layer=+b.dataset.l;syncLayer()});
+  document.querySelectorAll('#fltSel .chip').forEach(b=>b.onclick=()=>{filter=b.dataset.f;mark('#fltSel','f',filter);draw()});
+  document.querySelectorAll('#frmSel .chip').forEach(b=>b.onclick=()=>{frame=b.dataset.r;mark('#frmSel','r',frame);draw()});
+  const L=(id,fn)=>$(id).addEventListener('input',e=>{fn(e.target.value);draw()});
+  L('inpText',v=>layers[layer].text=v);L('inpFont',v=>layers[layer].fontFamily=v);L('inpColor',v=>layers[layer].color=v);
+  L('inpSize',v=>{layers[layer].fontSize=+v;$('vSize').textContent=v+'px'});L('inpSpace',v=>layers[layer].letterSpacing=+v);
+  L('inpAlign',v=>layers[layer].align=v);L('inpShadow',v=>layers[layer].shadow=v);
+  L('inpOv',v=>{ov=+v;$('vOv').textContent=v+'%'});L('inpVg',v=>{vg=+v;$('vVg').textContent=v+'%'});
+  L('inpScale',v=>{img.s=+v;$('vScale').textContent=v+'%'});L('inpOx',v=>{img.x=+v;$('vOx').textContent=v});L('inpOy',v=>{img.y=+v;$('vOy').textContent=v});
+  $('btnResetImg').onclick=()=>{img={s:100,x:0,y:0};syncImg()};
+  $('btnResetPos').onclick=()=>{layers.forEach((l,i)=>{l.x=W/2;l.y=DEFY[i]});draw()};
+  $('bgUpload').onchange=e=>{if(e.target.files[0])onUpload(e.target.files[0]);e.target.value=''};
+  $('btnRandom').onclick=()=>{const i=Math.floor(Math.random()*TPL.length),b=applyTpl(i,true);img={s:100,x:0,y:0};syncImg();
+    $('rndThumb').src=BGS[b].url;$('rndName').textContent=TPL[i].name+' ‧ '+BGS[b].name;$('rndText').textContent=TPL[i].layers[0].text.replace(/\n/g,' ')};
+  $('btnDownload').onclick=()=>{exporting=true;draw();
+    try{const a=document.createElement('a');a.download=`Stylish_Greeting_${Date.now()}.png`;a.href=cv.toDataURL('image/png',1);a.click()}
+    catch(e){alert('背景圖片來源不允許匯出，請改用內建生成背景或自行上傳照片。')}
+    exporting=false;draw()};
+  cv.addEventListener('mousedown',down);cv.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
+  cv.addEventListener('touchstart',e=>{const t=e.touches[0];down({clientX:t.clientX,clientY:t.clientY})},{passive:false});
+  cv.addEventListener('touchmove',e=>{if(drag>=0){e.preventDefault();const t=e.touches[0];move({clientX:t.clientX,clientY:t.clientY})}},{passive:false});
+  window.addEventListener('touchend',up);
+  applyTpl(0);syncImg();
+  $('rndThumb').src=BGS[0].url;$('rndName').textContent=TPL[0].name+' ‧ '+BGS[0].name;$('rndText').textContent=TPL[0].layers[0].text.replace(/\n/g,' ');
+  openDB().then(renderMine)}
+window.onload=init;
+</script>
+</body>
+</html>
