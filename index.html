@@ -114,14 +114,15 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     <!-- 5 GIF -->
     <div class="pane space-y-4 hidden" data-p="4"><div class="card space-y-3"><div class="h">GIF 動畫設定</div>
       <p class="text-sm text-amber-200 bg-amber-500/10 rounded-lg p-2">三步驟：① 選下面的效果　② 按「▶ 預覽動畫」看看　③ 按「🎞️ 生成 GIF」</p>
+      <button id="gLine" class="chip w-full !border-amber-500 !text-amber-300">📱 一鍵套用「傳 LINE」建議設定</button>
       <div class="grid grid-cols-2 gap-3">
         <div><label class="l">文字動畫</label><select id="gFx"><option value="fade">逐行淡入</option><option value="rise">上浮淡入</option><option value="none">無</option></select></div>
-        <div><label class="l">長度</label><select id="gDur"><option value="2">2 秒</option><option value="3" selected>3 秒</option><option value="4">4 秒</option><option value="6">6 秒</option><option value="8">8 秒（動作更慢）</option></select></div>
-        <div><label class="l">每秒幀數</label><select id="gFps"><option value="8">8（檔案小）</option><option value="10" selected>10</option><option value="12">12（較順）</option></select></div>
-        <div><label class="l">寬度</label><select id="gW"><option value="360">360px</option><option value="480" selected>480px</option><option value="600">600px</option></select></div>
+        <div><label class="l">長度</label><select id="gDur"><option value="2">2 秒</option><option value="3">3 秒</option><option value="4" selected>4 秒（LINE 建議）</option><option value="6">6 秒</option><option value="8">8 秒（動作更慢）</option></select></div>
+        <div><label class="l">每秒幀數</label><select id="gFps"><option value="8">8（檔案小）</option><option value="10" selected>10（LINE 建議）</option><option value="12">12（較順）</option></select></div>
+        <div><label class="l">寬度</label><select id="gW"><option value="360">360px</option><option value="480" selected>480px（LINE 建議）</option><option value="600">600px</option></select></div>
       </div>
       <div><label class="l">畫面飄落 / 閃爍效果</label><select id="gPart"><option value="snow">❄️ 雪花飄落</option><option value="petal">🌸 花瓣飄落</option><option value="dust">✨ 金色光點上升</option><option value="star">⭐ 星光閃爍</option><option value="none">無</option></select></div>
-      <div><label class="l">飄落 / 閃爍速度</label><select id="gSpd"><option value="slow" selected>慢（推薦）</option><option value="normal">中</option><option value="fast">快</option></select></div>
+      <div><label class="l">飄落 / 閃爍速度</label><select id="gSpd"><option value="xslow" selected>極慢（LINE 建議）</option><option value="slow">慢</option><option value="normal">中</option><option value="fast">快</option></select></div>
       <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gZoom" checked class="accent-amber-500"> 背景緩慢推近</label>
       <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gDrift" class="accent-amber-500"> 鏡頭左右緩慢漂移</label>
       <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gSweep" class="accent-amber-500"> 流光掃過畫面</label>
@@ -195,7 +196,7 @@ const DEFY=[420,520,860];
 let bg=new Image(),filter='film',ov=30,vg=40,frame='editorial',layer=0,exporting=false;
 let img={s:100,x:0,y:0},layers=[],curTpl=0;
 let drag=-1,dx=0,dy=0;
-let anim={t:null,fx:"none",zoom:false,glow:false,p:"none",spd:"slow",drift:false,sweep:false};
+let anim={t:null,fx:"none",zoom:false,glow:false,p:"none",spd:"xslow",drift:false,sweep:false};
 
 function setBg(src){const im=new Image();im.crossOrigin='anonymous';
   im.onload=()=>{bg=im;draw()};im.src=src}
@@ -308,18 +309,19 @@ function saveBlob(bl,ext){const name=`Stylish_Greeting_${Date.now()}.${ext||'png
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
 const PT=(()=>{let q=7;const r=()=>(q=(q*16807)%2147483647)/2147483647;return Array.from({length:70},()=>({x:r(),y:r(),r:r(),c:1+Math.floor(r()*2),ph:r()*6.28}))})();
 function particleFx(){const t=anim.t,k=anim.p;if(t==null||!k||k==='none')return;
-  const n={snow:70,petal:28,dust:50,star:30}[k],T=2*Math.PI;ctx.save();
-  for(let i=0;i<n;i++){const p=PT[i],c=anim.spd==='fast'?p.c*2:anim.spd==='normal'?p.c:1,sn=Math.sin(T*t*c+p.ph);
-    if(k==='snow'){const y=((p.y+t*c)%1)*H,x=((p.x+Math.sin(T*t*c+p.ph)*.03+1)%1)*W;
-      ctx.globalAlpha=.55+.4*p.r;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,1.5+p.r*4.5,0,7);ctx.fill()}
-    else if(k==='petal'){const y=((p.y+t*c)%1)*H,x=((p.x+Math.sin(T*t*c+p.ph)*.06+1)%1)*W;
-      ctx.save();ctx.translate(x,y);ctx.rotate(T*t*c+p.ph);ctx.globalAlpha=.85;ctx.fillStyle=p.r>.5?'#ffb7c5':'#ffd6e0';
-      ctx.beginPath();ctx.ellipse(0,0,6+p.r*8,3+p.r*3,0,0,7);ctx.fill();ctx.restore()}
-    else if(k==='dust'){const y=(1-((p.y+t*c)%1))*H,x=((p.x+Math.sin(T*t+p.ph)*.02+1)%1)*W;
-      ctx.globalAlpha=.35+.55*(sn+1)/2;ctx.fillStyle='#ffe096';ctx.shadowColor='#f5b942';ctx.shadowBlur=10;
-      ctx.beginPath();ctx.arc(x,y,1.5+p.r*3,0,7);ctx.fill()}
-    else{const a=(sn+1)/2,x=p.x*W,y=p.y*H,z=3+p.r*10*a;ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;
-      ctx.beginPath();ctx.moveTo(x,y-z);ctx.lineTo(x+z*.25,y-z*.25);ctx.lineTo(x+z,y);ctx.lineTo(x+z*.25,y+z*.25);ctx.lineTo(x,y+z);ctx.lineTo(x-z*.25,y+z*.25);ctx.lineTo(x-z,y);ctx.lineTo(x-z*.25,y-z*.25);ctx.closePath();ctx.fill()}}
+  const n={snow:70,petal:28,dust:50,star:30}[k],T=2*Math.PI,sp=anim.spd;ctx.save();
+  for(let i=0;i<n;i++){const p=PT[i],c=sp==='fast'?p.c*2:sp==='normal'?p.c:1,v=sp==='xslow'?.5:c,sn=Math.sin(T*t*c+p.ph);
+    if(k==='star'){const a=(sn+1)/2,x=p.x*W,y=p.y*H,z=3+p.r*10*a;ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;
+      ctx.beginPath();ctx.moveTo(x,y-z);ctx.lineTo(x+z*.25,y-z*.25);ctx.lineTo(x+z,y);ctx.lineTo(x+z*.25,y+z*.25);ctx.lineTo(x,y+z);ctx.lineTo(x-z*.25,y+z*.25);ctx.lineTo(x-z,y);ctx.lineTo(x-z*.25,y-z*.25);ctx.closePath();ctx.fill();continue}
+    const reps=v<1?Math.round(1/v):1;
+    for(let m=0;m<reps;m++){
+      const f=v<1?((p.y*v+t*v)%v)+m*v:(p.y+t*v)%1,y=f*H,
+      x=((p.x+(k==='petal'?.06:k==='dust'?.02:.03)*(k==='dust'?Math.sin(T*t+p.ph):sn)+1)%1)*W;
+      if(k==='snow'){ctx.globalAlpha=.55+.4*p.r;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,1.5+p.r*4.5,0,7);ctx.fill()}
+      else if(k==='petal'){ctx.save();ctx.translate(x,y);ctx.rotate(T*t*c+p.ph);ctx.globalAlpha=.85;ctx.fillStyle=p.r>.5?'#ffb7c5':'#ffd6e0';
+        ctx.beginPath();ctx.ellipse(0,0,6+p.r*8,3+p.r*3,0,0,7);ctx.fill();ctx.restore()}
+      else{ctx.globalAlpha=.35+.55*(sn+1)/2;ctx.fillStyle='#ffe096';ctx.shadowColor='#f5b942';ctx.shadowBlur=10;
+        ctx.beginPath();ctx.arc(x,H-y,1.5+p.r*3,0,7);ctx.fill()}}}
   ctx.restore()}
 function sweepFx(){if(anim.t==null||!anim.sweep)return;const x=-W*.4+anim.t*W*1.8,g=ctx.createLinearGradient(x,0,x+W*.3,H*.15);
   g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
@@ -349,7 +351,8 @@ async function makeGif(){
   btn.disabled=false}
 function openGuide(){$('guide').classList.remove('hidden')}
 function closeGuide(){$('guide').classList.add('hidden');try{localStorage.setItem('guideSeen','1')}catch(e){}}
-function bindGif(){$('gGuide').onclick=openGuide;$('guideClose').onclick=closeGuide;
+function bindGif(){$('gLine').onclick=()=>{$('gDur').value='4';$('gFps').value='10';$('gW').value='480';$('gSpd').value='xslow';$('gStat').textContent='已套用：4 秒、10 幀、480px、極慢速度（適合傳 LINE）'};
+  $('gGuide').onclick=openGuide;$('guideClose').onclick=closeGuide;
   $('gGoGif').onclick=()=>{showTab(4);document.querySelector('.tab[data-t="4"]').scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'})};
   try{if(!localStorage.getItem('guideSeen'))openGuide()}catch(e){}
   $('gPlay').onclick=play;$('gStop').onclick=stop;$('gMake').onclick=makeGif;
