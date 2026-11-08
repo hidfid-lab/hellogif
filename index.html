@@ -246,6 +246,17 @@ function syncImg(){$('inpScale').value=img.s;$('vScale').textContent=img.s+'%';$
 function showTab(n){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',+b.dataset.t===n));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('hidden',+p.dataset.p!==n))}
 
+function showSave(bl){const u=URL.createObjectURL(bl);let o=$('saveBox');
+  if(!o){o=document.createElement('div');o.id='saveBox';o.style.cssText='position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px';document.body.appendChild(o)}
+  o.innerHTML=`<p style="color:#fbbf24;font-size:14px">長按下方圖片，選擇「儲存圖片」</p><img src="${u}" style="max-height:70vh;max-width:100%;border-radius:8px"><button id="saveClose" style="padding:8px 24px;border-radius:999px;background:#f59e0b;color:#111;font-weight:600">關閉</button>`;
+  o.style.display='flex';$('saveClose').onclick=()=>{o.style.display='none'}}
+function saveBlob(bl){const name=`Stylish_Greeting_${Date.now()}.png`;
+  if(matchMedia('(pointer:coarse)').matches){
+    const f=new File([bl],name,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).catch(e=>{if(e.name!=='AbortError')showSave(bl)});return}
+    showSave(bl);return}
+  const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
 function init(){
   $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
     <img crossorigin="anonymous" loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
@@ -266,9 +277,7 @@ function init(){
   $('btnRandom').onclick=()=>{const i=Math.floor(Math.random()*TPL.length),b=applyTpl(i,true);img={s:100,x:0,y:0};syncImg();
     $('rndThumb').src=BGS[b].url;$('rndName').textContent=TPL[i].name+' ‧ '+BGS[b].name;$('rndText').textContent=TPL[i].layers[0].text.replace(/\n/g,' ')};
   $('btnDownload').onclick=()=>{exporting=true;draw();
-    try{cv.toBlob(bl=>{if(!bl){alert('匯出失敗，請重試。');return}
-      const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=`Stylish_Greeting_${Date.now()}.png`;
-      document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)},'image/png')}
+    try{cv.toBlob(bl=>{if(!bl){alert('匯出失敗，請重試。');return}saveBlob(bl)},'image/png')}
     catch(e){alert('目前的背景圖片不允許匯出（跨網域限制）。請按 Ctrl+F5 強制重新整理後再試，或改用上傳的照片。')}
     exporting=false;draw()};
   cv.addEventListener('mousedown',down);cv.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
