@@ -48,6 +48,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     <button class="tab chip" data-t="1">✍️ 標題與風格</button>
     <button class="tab chip" data-t="2">📍 圖片與位置微調</button>
     <button class="tab chip" data-t="3">🎨 特效與相框</button>
+    <button class="tab chip" data-t="4">🎞️ GIF 動畫</button>
   </div>
   <div class="flex-1 overflow-y-auto p-3 lg:p-5 space-y-4">
 
@@ -102,6 +103,23 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
         <button id="btnResetPos" class="chip w-full">重設文字位置</button></div>
     </div>
 
+    <!-- 5 GIF -->
+    <div class="pane space-y-4 hidden" data-p="4"><div class="card space-y-3"><div class="h">GIF 動畫設定</div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="l">文字動畫</label><select id="gFx"><option value="fade">逐行淡入</option><option value="rise">上浮淡入</option><option value="none">無</option></select></div>
+        <div><label class="l">長度</label><select id="gDur"><option value="2">2 秒</option><option value="3" selected>3 秒</option><option value="4">4 秒</option><option value="6">6 秒</option></select></div>
+        <div><label class="l">每秒幀數</label><select id="gFps"><option value="8">8（檔案小）</option><option value="10" selected>10</option><option value="12">12（較順）</option></select></div>
+        <div><label class="l">寬度</label><select id="gW"><option value="360">360px</option><option value="480" selected>480px</option><option value="600">600px</option></select></div>
+      </div>
+      <div><label class="l">畫面飄落 / 閃爍效果</label><select id="gPart"><option value="snow">❄️ 雪花飄落</option><option value="petal">🌸 花瓣飄落</option><option value="dust">✨ 金色光點上升</option><option value="star">⭐ 星光閃爍</option><option value="none">無</option></select></div>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gZoom" checked class="accent-amber-500"> 背景緩慢推近</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gDrift" class="accent-amber-500"> 鏡頭左右緩慢漂移</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gSweep" class="accent-amber-500"> 流光掃過畫面</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="gGlow" class="accent-amber-500"> 光暈呼吸</label>
+      <div class="grid grid-cols-2 gap-2"><button id="gPlay" class="chip">▶ 預覽動畫</button><button id="gStop" class="chip">■ 停止</button></div>
+      <button id="gMake" class="w-full py-2 rounded-full bg-amber-500 text-neutral-950 font-semibold text-sm">🎞️ 生成 GIF</button>
+      <p id="gStat" class="text-xs text-neutral-400"></p></div></div>
+
     <!-- 4 特效與相框 -->
     <div class="pane space-y-4 hidden" data-p="3">
       <div class="card space-y-3">
@@ -152,6 +170,7 @@ const DEFY=[420,520,860];
 let bg=new Image(),filter='film',ov=30,vg=40,frame='editorial',layer=0,exporting=false;
 let img={s:100,x:0,y:0},layers=[],curTpl=0;
 let drag=-1,dx=0,dy=0;
+let anim={t:null,fx:"none",zoom:false,glow:false,p:"none",drift:false,sweep:false};
 
 function setBg(src){const im=new Image();im.crossOrigin='anonymous';
   im.onload=()=>{bg=im;draw()};im.src=src}
@@ -201,18 +220,23 @@ function draw(){
   if(bg.complete&&bg.naturalWidth){
     const ir=bg.naturalWidth/bg.naturalHeight,cr=W/H;let rw,rh;
     if(ir>cr){rh=H;rw=H*ir}else{rw=W;rh=W/ir}
-    rw*=img.s/100;rh*=img.s/100;
-    ctx.drawImage(bg,W/2+img.x*W/100-rw/2,H/2+img.y*H/100-rh/2,rw,rh)
+    const zs=anim.t!=null&&anim.zoom?1+.12*(1-Math.cos(2*Math.PI*anim.t))/2:1;
+    const dz=anim.t!=null&&anim.drift?1.08:1;
+    rw*=img.s/100*zs*dz;rh*=img.s/100*zs*dz;
+    const dr=anim.t!=null&&anim.drift?Math.sin(2*Math.PI*anim.t)*W*.03:0;
+    ctx.drawImage(bg,W/2+dr+img.x*W/100-rw/2,H/2+img.y*H/100-rh/2,rw,rh)
   }else{ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H)}
   applyFilter();
   if(ov>0){ctx.fillStyle=`rgba(0,0,0,${ov/100})`;ctx.fillRect(0,0,W,H)}
   if(vg>0){const g=ctx.createRadialGradient(W/2,H/2,W*.3,W/2,H/2,W*.75);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${vg/100})`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
-  drawFrame();
+  glowFx();drawFrame();particleFx();sweepFx();
   layers.forEach((l,idx)=>{if(!l.text.trim())return;
-    ctx.save();ctx.font=`400 ${l.fontSize}px ${l.fontFamily}`;ctx.fillStyle=l.color;ctx.textBaseline='middle';
+    let oy=0;ctx.save();
+    if(anim.t!=null&&anim.fx!=='none'){const q=Math.min(1,Math.max(0,(anim.t*1.6-idx*.25)/.4)),e=1-Math.pow(1-q,3);ctx.globalAlpha=e;if(anim.fx==='rise')oy=(1-e)*40}
+    ctx.font=`400 ${l.fontSize}px ${l.fontFamily}`;ctx.fillStyle=l.color;ctx.textBaseline='middle';
     if(l.shadow==='soft'){ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=12;ctx.shadowOffsetY=4}
     else if(l.shadow==='glow'){ctx.shadowColor='rgba(197,160,89,.8)';ctx.shadowBlur=18}
-    const lines=l.text.split('\n'),lh=l.fontSize*1.35,th=lines.length*lh,sy=l.y-th/2+lh/2;
+    const lines=l.text.split('\n'),lh=l.fontSize*1.35,th=lines.length*lh,sy=l.y+oy-th/2+lh/2;
     lines.forEach((ln,i)=>spaced(ln,l.x,sy+i*lh,l.letterSpacing||0,l.align||'center'));
     if(idx===layer&&!exporting){ctx.shadowColor='transparent';ctx.strokeStyle='rgba(197,160,89,.6)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(l.x-180,l.y-th/2-10,360,th+20)}
     ctx.restore()})}
@@ -249,14 +273,57 @@ function showTab(n){document.querySelectorAll('.tab').forEach(b=>b.classList.tog
 function showSave(bl,name){const u=URL.createObjectURL(bl);let o=$('saveBox');
   if(!o){o=document.createElement('div');o.id='saveBox';o.style.cssText='position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px';document.body.appendChild(o)}
   o.innerHTML=`<p style="color:#fbbf24;font-size:14px">長按下方圖片，選擇「儲存圖片」或「下載圖片」，即可存到相簿</p><img src="${u}" style="max-height:70vh;max-width:100%;border-radius:8px"><button id="saveShare" style="padding:8px 24px;border-radius:999px;background:#262626;color:#eee;border:1px solid #404040">分享 / 存到檔案</button><button id="saveClose" style="padding:8px 24px;border-radius:999px;background:#f59e0b;color:#111;font-weight:600">關閉</button>`;
-  o.style.display='flex';$('saveShare').onclick=()=>{const f=new File([bl],name,{type:'image/png'});
+  o.style.display='flex';$('saveShare').onclick=()=>{const f=new File([bl],name,{type:bl.type});
     if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});else alert('此瀏覽器不支援分享，請長按圖片儲存。')};
   $('saveClose').onclick=()=>{o.style.display='none'}}
-function saveBlob(bl){const name=`Stylish_Greeting_${Date.now()}.png`;
+function saveBlob(bl,ext){const name=`Stylish_Greeting_${Date.now()}.${ext||'png'}`;
   if(matchMedia('(pointer:coarse)').matches){
     showSave(bl,name);return}
   const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+const PT=(()=>{let q=7;const r=()=>(q=(q*16807)%2147483647)/2147483647;return Array.from({length:70},()=>({x:r(),y:r(),r:r(),c:1+Math.floor(r()*2),ph:r()*6.28}))})();
+function particleFx(){const t=anim.t,k=anim.p;if(t==null||!k||k==='none')return;
+  const n={snow:70,petal:28,dust:50,star:30}[k],T=2*Math.PI;ctx.save();
+  for(let i=0;i<n;i++){const p=PT[i],sn=Math.sin(T*t*p.c+p.ph);
+    if(k==='snow'){const y=((p.y+t*p.c)%1)*H,x=((p.x+Math.sin(T*t*p.c+p.ph)*.03+1)%1)*W;
+      ctx.globalAlpha=.55+.4*p.r;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x,y,1.5+p.r*4.5,0,7);ctx.fill()}
+    else if(k==='petal'){const y=((p.y+t*p.c)%1)*H,x=((p.x+Math.sin(T*t*p.c+p.ph)*.06+1)%1)*W;
+      ctx.save();ctx.translate(x,y);ctx.rotate(T*t*p.c+p.ph);ctx.globalAlpha=.85;ctx.fillStyle=p.r>.5?'#ffb7c5':'#ffd6e0';
+      ctx.beginPath();ctx.ellipse(0,0,6+p.r*8,3+p.r*3,0,0,7);ctx.fill();ctx.restore()}
+    else if(k==='dust'){const y=(1-((p.y+t*p.c)%1))*H,x=((p.x+Math.sin(T*t+p.ph)*.02+1)%1)*W;
+      ctx.globalAlpha=.35+.55*(sn+1)/2;ctx.fillStyle='#ffe096';ctx.shadowColor='#f5b942';ctx.shadowBlur=10;
+      ctx.beginPath();ctx.arc(x,y,1.5+p.r*3,0,7);ctx.fill()}
+    else{const a=(sn+1)/2,x=p.x*W,y=p.y*H,z=3+p.r*10*a;ctx.globalAlpha=a;ctx.fillStyle='#fff';ctx.shadowColor='#fff';ctx.shadowBlur=8;
+      ctx.beginPath();ctx.moveTo(x,y-z);ctx.lineTo(x+z*.25,y-z*.25);ctx.lineTo(x+z,y);ctx.lineTo(x+z*.25,y+z*.25);ctx.lineTo(x,y+z);ctx.lineTo(x-z*.25,y+z*.25);ctx.lineTo(x-z,y);ctx.lineTo(x-z*.25,y-z*.25);ctx.closePath();ctx.fill()}}
+  ctx.restore()}
+function sweepFx(){if(anim.t==null||!anim.sweep)return;const x=-W*.4+anim.t*W*1.8,g=ctx.createLinearGradient(x,0,x+W*.3,H*.15);
+  g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.5,'rgba(255,255,255,.28)');g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+const E=t=>(1-Math.cos(2*Math.PI*t))/2;
+function glowFx(){if(anim.t==null||!anim.glow)return;const g=ctx.createRadialGradient(W/2,H*.4,0,W/2,H*.4,W*.8);
+  g.addColorStop(0,`rgba(255,214,140,${.28*E(anim.t)})`);g.addColorStop(1,'rgba(255,214,140,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+function readFx(){anim.fx=$('gFx').value;anim.zoom=$('gZoom').checked;anim.glow=$('gGlow').checked;anim.p=$('gPart').value;anim.drift=$('gDrift').checked;anim.sweep=$('gSweep').checked}
+let playing=0;
+function play(){readFx();if(playing)return;exporting=true;playing=1;const d=+$('gDur').value*1000;
+  const loop=()=>{if(!playing)return;anim.t=(performance.now()%d)/d;draw();requestAnimationFrame(loop)};loop()}
+function stop(){playing=0;anim.t=null;exporting=false;draw()}
+async function makeGif(){
+  const st=$('gStat'),btn=$('gMake');stop();readFx();
+  let lib;try{lib=await import('https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js')}catch(e){st.textContent='無法載入 GIF 編碼器，請確認網路連線。';return}
+  const {GIFEncoder,quantize,applyPalette}=lib;
+  const w=+$('gW').value,h=Math.round(w*H/W),fps=+$('gFps').value,n=Math.round(+$('gDur').value*fps);
+  const sc=document.createElement('canvas');sc.width=w;sc.height=h;const sx=sc.getContext('2d',{willReadFrequently:true});
+  btn.disabled=true;exporting=true;const fr=[];
+  try{for(let i=0;i<n;i++){anim.t=i/n;draw();sx.drawImage(cv,0,0,w,h);fr.push(sx.getImageData(0,0,w,h).data);
+      st.textContent=`繪製畫面 ${i+1}/${n}`;await new Promise(r=>setTimeout(r))}
+    st.textContent='編碼中…';await new Promise(r=>setTimeout(r,20));
+    const pal=quantize(fr[Math.floor(n*.6)],256),gif=GIFEncoder();
+    fr.forEach((d,i)=>gif.writeFrame(applyPalette(d,pal),w,h,i?{delay:Math.round(1000/fps)}:{palette:pal,delay:Math.round(1000/fps)}));
+    gif.finish();anim.t=null;exporting=false;draw();
+    const bl=new Blob([gif.bytes()],{type:'image/gif'});st.textContent=`完成：${(bl.size/1024).toFixed(0)} KB`;saveBlob(bl,'gif')}
+  catch(e){anim.t=null;exporting=false;draw();st.textContent='生成失敗：背景圖片可能受跨網域限制，請 Ctrl+F5 重新整理，或改用上傳的照片。'}
+  btn.disabled=false}
+function bindGif(){$('gPlay').onclick=play;$('gStop').onclick=stop;$('gMake').onclick=makeGif;
+  document.querySelectorAll('#tabs .tab').forEach(b=>b.addEventListener('click',()=>{if(+b.dataset.t!==4&&playing)stop()}))}
 function init(){
   $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
     <img crossorigin="anonymous" loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
@@ -286,7 +353,7 @@ function init(){
   window.addEventListener('touchend',up);
   applyTpl(0);syncImg();
   $('rndThumb').src=BGS[0].url;$('rndName').textContent=TPL[0].name+' ‧ '+BGS[0].name;$('rndText').textContent=TPL[0].layers[0].text.replace(/\n/g,' ');
-  openDB().then(renderMine)}
+  bindGif();openDB().then(renderMine)}
 window.onload=init;
 </script>
 </body>
