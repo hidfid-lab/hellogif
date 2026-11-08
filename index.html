@@ -34,7 +34,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
   <div class="w-full max-w-[520px] mt-3 flex items-center gap-2">
     <button id="btnRandom" class="px-4 py-2 rounded-full bg-neutral-800 border border-neutral-700 text-sm whitespace-nowrap">隨機靈感 ✦</button>
     <div class="flex-1 min-w-0 flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-xl p-1.5">
-      <img id="rndThumb" class="w-9 h-9 rounded-lg object-cover bg-neutral-800" alt="">
+      <img id="rndThumb" crossorigin="anonymous" class="w-9 h-9 rounded-lg object-cover bg-neutral-800" alt="">
       <div class="min-w-0"><div id="rndName" class="text-xs text-amber-400 truncate"></div><div id="rndText" class="text-[11px] text-neutral-400 truncate"></div></div>
     </div>
     <button id="btnDownload" class="px-4 py-2 rounded-full bg-amber-500 text-neutral-950 font-semibold text-sm whitespace-nowrap">匯出</button>
@@ -248,7 +248,7 @@ function showTab(n){document.querySelectorAll('.tab').forEach(b=>b.classList.tog
 
 function init(){
   $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
-    <img loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
+    <img crossorigin="anonymous" loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
   $('tplSel').innerHTML=TPL.map((t,i)=>`<button onclick="applyTpl(${i})" class="chip text-left h-16"><div class="font-semibold">${t.name}</div><div class="text-[10px] text-neutral-500 uppercase">${t.id}</div></button>`).join('');
   document.querySelectorAll('#tabs .tab').forEach(b=>b.onclick=()=>{showTab(+b.dataset.t);b.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'})});
   document.querySelectorAll('#layerSel .chip').forEach(b=>b.onclick=()=>{layer=+b.dataset.l;syncLayer()});
@@ -266,8 +266,10 @@ function init(){
   $('btnRandom').onclick=()=>{const i=Math.floor(Math.random()*TPL.length),b=applyTpl(i,true);img={s:100,x:0,y:0};syncImg();
     $('rndThumb').src=BGS[b].url;$('rndName').textContent=TPL[i].name+' ‧ '+BGS[b].name;$('rndText').textContent=TPL[i].layers[0].text.replace(/\n/g,' ')};
   $('btnDownload').onclick=()=>{exporting=true;draw();
-    try{const a=document.createElement('a');a.download=`Stylish_Greeting_${Date.now()}.png`;a.href=cv.toDataURL('image/png',1);a.click()}
-    catch(e){alert('背景圖片來源不允許匯出，請改用內建生成背景或自行上傳照片。')}
+    try{cv.toBlob(bl=>{if(!bl){alert('匯出失敗，請重試。');return}
+      const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=`Stylish_Greeting_${Date.now()}.png`;
+      document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)},'image/png')}
+    catch(e){alert('目前的背景圖片不允許匯出（跨網域限制）。請按 Ctrl+F5 強制重新整理後再試，或改用上傳的照片。')}
     exporting=false;draw()};
   cv.addEventListener('mousedown',down);cv.addEventListener('mousemove',move);window.addEventListener('mouseup',up);
   cv.addEventListener('touchstart',e=>{const t=e.touches[0];down({clientX:t.clientX,clientY:t.clientY})},{passive:false});
