@@ -1,589 +1,729 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>浪人包膜 頭份店 - 飛越特技調參試驗場</title>
-  
-  <!-- 載入外部 Tailwind CSS (若在網路環境下將自動套用，若無網路也有純 CSS 保底) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>浪人包膜 頭份店 - 特斯拉特技展示</title>
   <style>
-    /* 核心基礎純 CSS 備用樣式 - 確保在各種手機載入時絕不呈現全白畫面 */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+    
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      background-color: #0b0f19 !important;
-      color: #e2e8f0 !important;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
       margin: 0;
       padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #080c14;
+      background-image: radial-gradient(ellipse at top, #0f172a 0%, #080c14 60%, #000000 100%);
+      color: #f8fafc;
       min-height: 100vh;
+      display: block;
+      padding: 16px 16px 80px 16px;
       overflow-x: hidden;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
     }
-    
-    .tesla-midair-glow {
-      filter: drop-shadow(0 0 14px var(--glow-color, #00f0ff)) drop-shadow(0 0 28px var(--glow-color, #00f0ff)) !important;
+
+    header {
+      text-align: center;
+      margin-top: 12px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 10;
     }
-    
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(8, 47, 73, 0.8);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .title-text {
+      font-size: 28px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .title-highlight {
+      background: linear-gradient(to right, #38bdf8, #5eead4, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle-text {
+      color: #94a3b8;
+      font-size: 13px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    main {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 20;
+      padding: 0;
+    }
+
+    .stage-card {
+      position: relative;
+      width: 100%;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(30, 41, 59, 0.8);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5);
+      overflow: visible;
+    }
+
+    .rail-track {
+      position: absolute;
+      top: 35px;
+      left: -20px;
+      right: -20px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #38bdf8, #ec4899, #38bdf8, transparent);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+      z-index: 15;
+    }
+
+    #petContainer {
+      position: absolute;
+      top: 18px;
+      left: 0;
+      width: 65px;
+      height: 32px;
+      pointer-events: none;
+      z-index: 50;
+      will-change: transform;
+      transform-style: preserve-3d;
+    }
+
     .thruster-particle {
       position: absolute;
-      pointer-events: none;
       border-radius: 50%;
-      z-index: 80;
-      animation: particleBurn 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-    }
-
-    @keyframes particleBurn {
-      0% {
-        opacity: 0.95;
-        transform: translate3d(0, 0, 0) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: translate3d(var(--dx), var(--dy), 0) scale(0.2);
-      }
-    }
-
-    .ghost-trail {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 48px;
-      height: 24px;
       pointer-events: none;
-      z-index: 90;
-      transform: var(--g-transform);
-      -webkit-transform: var(--g-transform);
-      transition: opacity 0.4s ease-out;
-      filter: drop-shadow(0 0 8px rgba(0,240,255,0.7));
+      z-index: 45;
+      animation: particle-fade 0.5s linear forwards;
     }
 
-    .track-line {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, rgba(59,130,246,0.2) 0%, rgba(0,240,255,0.8) 50%, rgba(59,130,246,0.2) 100%);
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
-      transform: translateY(-50%);
-      z-index: 1;
+    @keyframes particle-fade {
+      0% { opacity: 0.9; transform: scale(1); }
+      100% { opacity: 0; transform: scale(2.5) translateY(14px); }
     }
 
-    input[type=range] {
-      accent-color: #00f0ff;
+    footer {
+      max-width: 900px;
+      width: 100%;
+      margin: 20px auto 0 auto;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(30, 41, 59, 0.9);
+      padding: 16px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 11px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-trigger {
+      background: linear-gradient(to right, #06b6d4, #2563eb);
+      color: #030712;
+    }
+
+    .btn-pause {
+      background: #eab308;
+      color: #0f172a;
+    }
+
+    .btn-reset {
+      background: #334155;
+      color: #f1f5f9;
+    }
+
+    .btn-json {
+      background: #1e293b;
+      color: #f472b6;
+      border: 1px solid rgba(244, 114, 182, 0.3);
+    }
+
+    .slider-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .slider-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      color: #cbd5e1;
+    }
+
+    .slider-value {
+      color: #38bdf8;
+      font-family: monospace;
+    }
+
+    .prob-panel {
+      grid-column: 1 / -1;
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 4px;
+    }
+
+    .prob-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    select, input[type="range"] {
+      width: 100%;
+      height: 28px;
+      border-radius: 6px;
+      accent-color: #38bdf8;
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 0 6px;
+    }
+
+    .tesla-midair-glow {
+      filter: drop-shadow(0 0 15px #ffffff) drop-shadow(0 0 30px #38bdf8) !important;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 select-none">
+<body>
 
-  <!-- 頂部標題區域 (Tesla 飛越時會穿梭在上層 1:B 半透明透光過境) -->
-  <header class="text-center mt-2 mb-1 z-0 relative max-w-lg w-full px-2">
-    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 drop-shadow">
-      浪人包膜 頭份店
+  <header id="headerSection">
+    <div class="badge">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #38bdf8;"></span>
+      浪人包膜 頭份店 - 專屬特技動態展演
+    </div>
+    <h1 class="title-text">
+      浪人包膜 <span class="title-highlight">頭份店</span> 特技展示
     </h1>
-    <p class="text-xs sm:text-sm text-cyan-300/80 mt-0.5">
-      Cyber-Stunt Aerobatics & Flight Control
+    <p class="subtitle-text">
+      珍珠白特斯拉自動進行巡航與三種特技模式（直升機20%/3D空翻40%/拋物線40%）全自動表演。
     </p>
   </header>
 
-  <!-- 特斯拉可重疊視覺舞台區 -->
-  <main class="w-full max-w-2xl my-2 flex flex-col items-center">
-    
-    <!-- 按鈕與滑行軌道容器 -->
-    <div id="stageContainer" class="relative w-full h-32 flex items-center justify-between px-2 sm:px-6 my-2 bg-slate-900/60 backdrop-blur border border-slate-800/80 rounded-2xl shadow-2xl overflow-visible">
-      
-      <!-- 背景平行高科技發光軌道線 -->
-      <div class="track-line"></div>
+  <main>
+    <div id="stageContainer" class="stage-card">
+      <div class="rail-track"></div>
 
-      <!-- 特斯拉動態精靈 Sprite (高 Z-Index 允許飛越至文字上方) -->
-      <div id="pet" class="absolute top-0 left-0 w-12 h-6 pointer-events-none z-50 transition-opacity duration-200" style="transform: translate3d(0px, 0px, 0px); -webkit-transform: translate3d(0px, 0px, 0px); opacity: 1;">
-        <svg id="teslaSvg" viewBox="0 0 100 50" class="w-full h-full drop-shadow-lg">
+      <!-- 白色特斯拉動態圖形 -->
+      <div id="petContainer">
+        <svg id="teslaSvg" viewBox="0 0 120 60" style="width:100%; height:100%; filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.8)); transition: filter 0.3s ease;">
+          <g transform="translate(10, 10)">
+            <ellipse cx="50" cy="36" rx="40" ry="4" fill="#ffffff" opacity="0.7"/>
+            <!-- 珍珠白車身 -->
+            <path d="M 5 28 Q 12 18 28 14 Q 50 6 75 14 Q 88 20 95 28 L 98 32 Q 95 36 88 36 L 10 36 Q 5 36 5 28 Z" fill="url(#whiteTeslaGradient)" stroke="#ffffff" stroke-width="1.5"/>
+            <!-- 車窗玻璃 -->
+            <path d="M 26 15 Q 45 8 68 14 L 78 24 L 20 24 Z" fill="#0f172a" opacity="0.9" stroke="#38bdf8" stroke-width="1"/>
+            <!-- 白光頭燈與紅尾燈 -->
+            <ellipse cx="93" cy="27" rx="4" ry="2" fill="#ffffff" filter="drop-shadow(0 0 8px #ffffff)"/>
+            <ellipse cx="7" cy="27" rx="3" ry="2" fill="#ef4444" filter="drop-shadow(0 0 8px #ef4444)"/>
+            <!-- 車輪 -->
+            <circle cx="78" cy="34" r="7" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+            <circle cx="78" cy="34" r="3" fill="#ffffff"/>
+            <circle cx="22" cy="34" r="7" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+            <circle cx="22" cy="34" r="3" fill="#ffffff"/>
+          </g>
           <defs>
-            <linearGradient id="metallicPaint" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#00f0ff" />
-              <stop offset="100%" stop-color="#3b82f6" />
+            <linearGradient id="whiteTeslaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="60%" stop-color="#f1f5f9"/>
+              <stop offset="100%" stop-color="#cbd5e1"/>
             </linearGradient>
-            <filter id="glowEffect" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
-          <!-- 車底霓虹氣氛燈 -->
-          <ellipse id="underglow" cx="50" cy="45" rx="40" ry="4" fill="#00f0ff" opacity="0.85" filter="url(#glowEffect)" />
-          <!-- 特斯拉 Cyber 跑車車身線條 -->
-          <path d="M5,36 L15,36 L25,24 L60,22 L82,30 L95,34 L95,40 L5,40 Z" fill="url(#metallicPaint)" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>
-          <!-- 懸浮玻璃座艙 -->
-          <path d="M30,23 L55,21 L72,29 L32,29 Z" fill="#0f172a" opacity="0.85" stroke="#38bdf8" stroke-width="0.8"/>
-          <!-- 前後 LED 光啟燈條 -->
-          <path d="M92,34 L96,35 L92,37 Z" fill="#00f0ff" />
-          <path d="M5,36 L8,36 L8,38 L5,38 Z" fill="#ef4444" />
-          <!-- 車身側邊 Tesla 標誌標頭 -->
-          <text x="45" y="36" font-family="sans-serif" font-weight="900" font-size="9" fill="#ffffff" opacity="0.9" letter-spacing="1">T</text>
-          <!-- 輪框設計 -->
-          <circle cx="25" cy="40" r="5.5" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
-          <circle cx="75" cy="40" r="5.5" fill="#1e293b" stroke="#38bdf8" stroke-width="1.2"/>
         </svg>
       </div>
 
-      <!-- 5 個橫向軌道節點按鈕 -->
-      <div class="z-10 flex flex-col items-center">
-        <button class="node-btn px-3 py-2 bg-slate-800/90 hover:bg-cyan-950 text-cyan-300 font-bold rounded-lg border border-cyan-500/40 text-xs shadow-lg active:scale-95 transition-all">Node 1</button>
-        <label class="mt-1 flex items-center text-[10px] text-slate-400"><input type="checkbox" checked data-index="0" class="node-checkbox accent-cyan-400 mr-1 scale-90">啟用</label>
-      </div>
-      <div class="z-10 flex flex-col items-center">
-        <button class="node-btn px-3 py-2 bg-slate-800/90 hover:bg-cyan-950 text-cyan-300 font-bold rounded-lg border border-cyan-500/40 text-xs shadow-lg active:scale-95 transition-all">Node 2</button>
-        <label class="mt-1 flex items-center text-[10px] text-slate-400"><input type="checkbox" checked data-index="1" class="node-checkbox accent-cyan-400 mr-1 scale-90">啟用</label>
-      </div>
-      <div class="z-10 flex flex-col items-center">
-        <button class="node-btn px-3 py-2 bg-slate-800/90 hover:bg-cyan-950 text-cyan-300 font-bold rounded-lg border border-cyan-500/40 text-xs shadow-lg active:scale-95 transition-all">Node 3</button>
-        <label class="mt-1 flex items-center text-[10px] text-slate-400"><input type="checkbox" checked data-index="2" class="node-checkbox accent-cyan-400 mr-1 scale-90">啟用</label>
-      </div>
-      <div class="z-10 flex flex-col items-center">
-        <button class="node-btn px-3 py-2 bg-slate-800/90 hover:bg-cyan-950 text-cyan-300 font-bold rounded-lg border border-cyan-500/40 text-xs shadow-lg active:scale-95 transition-all">Node 4</button>
-        <label class="mt-1 flex items-center text-[10px] text-slate-400"><input type="checkbox" checked data-index="3" class="node-checkbox accent-cyan-400 mr-1 scale-90">啟用</label>
-      </div>
-      <div class="z-10 flex flex-col items-center">
-        <button class="node-btn px-3 py-2 bg-slate-800/90 hover:bg-cyan-950 text-cyan-300 font-bold rounded-lg border border-cyan-500/40 text-xs shadow-lg active:scale-95 transition-all">Node 5</button>
-        <label class="mt-1 flex items-center text-[10px] text-slate-400"><input type="checkbox" checked data-index="4" class="node-checkbox accent-cyan-400 mr-1 scale-90">啟用</label>
-      </div>
-
-    </div>
-
-    <!-- 快捷操控與 JSON 導出列 -->
-    <div class="w-full flex justify-between items-center px-1 my-2">
-      <button id="triggerStuntBtn" class="flex-1 mr-2 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm rounded-xl shadow-lg shadow-cyan-500/25 active:scale-95 transition">
-        🚀 觸發飛行展演 (Jump Stunt)
-      </button>
-      <button id="exportJsonBtn" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 font-bold text-xs rounded-xl shadow active:scale-95 transition">
-        📋 複製 JSON 設定檔
-      </button>
     </div>
   </main>
 
-  <!-- 參數微調控制面板 (Playground Control Dashboard) -->
-  <footer class="w-full max-w-2xl bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl mb-4">
-    <div class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
-      <span>🎛️ 特斯拉飛行與動態調參面板 (PLAYGROUND)</span>
-      <span class="text-[10px] text-slate-400">微調後匯出 JSON 即刻生效</span>
+  <footer>
+    <div class="panel-header">
+      <div style="font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+        <span>🎛️ 特斯拉展演調參面板</span>
+      </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <button id="pauseAnimBtn" class="btn-action btn-pause">⏸️ 暫停動畫</button>
+        <button id="manualTriggerBtn" class="btn-action btn-trigger">🚀 手動表演特技</button>
+        <button id="resetDefaultsBtn" class="btn-action btn-reset">🔄 恢復預設值</button>
+        <button id="exportJsonBtn" class="btn-action btn-json">📋 複製 JSON 設定檔</button>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-      <!-- 1. 飛躍高度 -->
-      <div class="flex flex-col">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>🚀 飛躍高度 (Hop Height)</label>
-          <span id="val_hopHeight" class="text-cyan-400 font-mono">140px</span>
+    <div class="slider-grid">
+      <div class="slider-item">
+        <div class="slider-label">
+          <span>🚁 飛行特技模式</span>
         </div>
-        <input id="param_hopHeight" type="range" min="50" max="300" value="140" step="10" class="w-full cursor-pointer">
-      </div>
-
-      <!-- 2. 飛行時間/慢動作緩降 -->
-      <div class="flex flex-col">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>⏱️ 飛行時間 (Duration)</label>
-          <span id="val_hopDuration" class="text-cyan-400 font-mono">2.2s</span>
-        </div>
-        <input id="param_hopDuration" type="range" min="1.0" max="6.0" value="2.2" step="0.2" class="w-full cursor-pointer">
-      </div>
-
-      <!-- 3. 空中翻轉圈數 -->
-      <div class="flex flex-col">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>🔄 空中特技翻轉圈數</label>
-          <span id="val_flips" class="text-cyan-400 font-mono">1 圈</span>
-        </div>
-        <input id="param_flips" type="range" min="0" max="4" value="1" step="1" class="w-full cursor-pointer">
-      </div>
-
-      <!-- 4. 噴霧氣體密度 -->
-      <div class="flex flex-col">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>💨 RCS 噴霧密度 (Smoke)</label>
-          <span id="val_smokeDensity" class="text-cyan-400 font-mono">6</span>
-        </div>
-        <input id="param_smokeDensity" type="range" min="0" max="15" value="6" step="1" class="w-full cursor-pointer">
-      </div>
-
-      <!-- 5. 1:B 穿過文字時透明度 -->
-      <div class="flex flex-col">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>✨ 穿過文字透明度 (1:B Overlay)</label>
-          <span id="val_textPassOpacity" class="text-cyan-400 font-mono">0.85</span>
-        </div>
-        <input id="param_textPassOpacity" type="range" min="0.3" max="1.0" value="0.85" step="0.05" class="w-full cursor-pointer">
-      </div>
-
-      <!-- 6. 噴霧 RGB 顏色模式 -->
-      <div class="flex flex-col">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>🎨 氣體/底盤 RGB 模式</label>
-          <span id="val_rgbMode" class="text-cyan-400 font-mono">每次飛躍隨機切換</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <select id="param_rgbMode" class="bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 flex-1 text-xs outline-none focus:border-cyan-500">
-            <option value="random">每次飛躍隨機切換 RGB</option>
-            <option value="custom">固定使用自訂 RGB 顏色</option>
-          </select>
-          <input id="param_customColor" type="color" value="#00f0ff" class="w-7 h-7 bg-transparent cursor-pointer rounded border border-slate-700">
-        </div>
-      </div>
-
-      <!-- 7. 飛行軌跡模式 -->
-      <div class="flex flex-col sm:col-span-2">
-        <div class="flex justify-between text-slate-300 mb-1">
-          <label>🛸 特技飛行軌跡 (Stunt Trajectory)</label>
-        </div>
-        <select id="param_stuntMode" class="bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 w-full text-xs outline-none focus:border-cyan-500">
-          <option value="random">模式 A & B 隨機交替 (A: 定點拋物線螺轉 / B: 8字波浪穿梭)</option>
-          <option value="parabola">模式 A：高弧度定點拋物線 + 螺轉</option>
-          <option value="wave">模式 B：多重 8 字波浪空中穿梭</option>
+        <select id="param_stuntMode">
+          <option value="random" selected>🎲 隨機自動輪播 (Auto Random)</option>
+          <option value="vtol">直升機垂直升降 (VTOL)</option>
+          <option value="spin">3D 旋轉空翻 (3D Spin Roll)</option>
+          <option value="arc">拋物線弧形 (Parabolic Arc)</option>
         </select>
+      </div>
+
+      <!-- 隨機輪播機率設定區塊 -->
+      <div class="prob-panel" id="probPanel">
+        <div style="color: #38bdf8; font-weight: 600; font-size: 11px;">🎲 隨機模式三種特技機率分配 (合計: <span id="val_probTotal" style="color:#a855f7;">100%</span>)</div>
+        <div class="prob-grid">
+          <div class="slider-item">
+            <div class="slider-label">
+              <span>🚁 直升機垂直升降</span>
+              <span id="val_probVTOL" class="slider-value">20%</span>
+            </div>
+            <input type="range" id="param_probVTOL" min="0" max="100" step="5" value="20">
+          </div>
+          <div class="slider-item">
+            <div class="slider-label">
+              <span>🌀 3D 旋轉空翻</span>
+              <span id="val_probSpin" class="slider-value">40%</span>
+            </div>
+            <input type="range" id="param_probSpin" min="0" max="100" step="5" value="40">
+          </div>
+          <div class="slider-item">
+            <div class="slider-label">
+              <span>🚀 拋物線弧形</span>
+              <span id="val_probArc" class="slider-value">40%</span>
+            </div>
+            <input type="range" id="param_probArc" min="0" max="100" step="5" value="40">
+          </div>
+        </div>
+      </div>
+
+      <div class="slider-item">
+        <div class="slider-label">
+          <span>🚀 飛躍/升空最大高度</span>
+          <span id="val_arcHeight" class="slider-value">140px</span>
+        </div>
+        <input type="range" id="param_arcHeight" min="50" max="300" step="5" value="140">
+      </div>
+
+      <div class="slider-item">
+        <div class="slider-label">
+          <span>⏱️ 飛行總耗時</span>
+          <span id="val_flightDuration" class="slider-value">4.7s</span>
+        </div>
+        <input type="range" id="param_flightDuration" min="1.0" max="8.0" step="0.1" value="4.7">
+      </div>
+
+      <div class="slider-item">
+        <div class="slider-label">
+          <span>🌀 空中旋轉圈數</span>
+          <span id="val_spinCount" class="slider-value">3 圈</span>
+        </div>
+        <input type="range" id="param_spinCount" min="0" max="5" step="1" value="3">
+      </div>
+
+      <div class="slider-item">
+        <div class="slider-label">
+          <span>🏎️ 平面巡航速度 (隨機範圍)</span>
+          <span id="val_patrolSpeed" class="slider-value">1.8 - 2.4x</span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="range" id="param_patrolSpeedMin" min="0.2" max="3.0" step="0.1" value="1.8">
+          <span style="color:#64748b;">~</span>
+          <input type="range" id="param_patrolSpeedMax" min="0.2" max="4.0" step="0.1" value="2.4">
+        </div>
+      </div>
+
+      <div class="slider-item">
+        <div class="slider-label">
+          <span>💨 噴霧氣體密度</span>
+          <span id="val_smokeDensity" class="slider-value">6</span>
+        </div>
+        <input type="range" id="param_smokeDensity" min="0" max="10" step="1" value="6">
+      </div>
+
+      <div class="slider-item" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 6px;">
+        <span style="color: #cbd5e1;">✨ 殘影/霓虹光暈 (Trail Glow)</span>
+        <input type="checkbox" id="param_trailGlow" checked style="width: 18px; height: 18px; accent-color: #38bdf8;">
       </div>
     </div>
   </footer>
 
-  <!-- JavaScript 核心邏輯 -->
   <script>
-    (function() {
-      // 避免重覆加載單一實例鎖
-      if (window.__teslaAppStarted) return;
-      
-      function startApp() {
-        if (window.__teslaAppStarted) return;
-        window.__teslaAppStarted = true;
+    const DEFAULT_CONFIG = {
+      stuntMode: 'random',
+      probVTOL: 20,
+      probSpin: 40,
+      probArc: 40,
+      arcHeight: 140,
+      flightDuration: 4.7,
+      spinCount: 3,
+      patrolSpeedMin: 1.8,
+      patrolSpeedMax: 2.4,
+      smokeDensity: 6,
+      trailGlow: true,
+      textPassOpacity: 0.85
+    };
 
-        try {
-          const pet = document.getElementById('pet');
-          const underglow = document.getElementById('underglow');
-          const metallicPaint = document.getElementById('metallicPaint');
-          const stageContainer = document.getElementById('stageContainer');
-          const buttons = Array.from(document.querySelectorAll('.node-btn'));
-          const checkboxes = Array.from(document.querySelectorAll('.node-checkbox'));
-          
-          const triggerStuntBtn = document.getElementById('triggerStuntBtn');
-          const exportJsonBtn = document.getElementById('exportJsonBtn');
+    let config = { ...DEFAULT_CONFIG };
 
-          const p_hopHeight = document.getElementById('param_hopHeight');
-          const p_hopDuration = document.getElementById('param_hopDuration');
-          const p_flips = document.getElementById('param_flips');
-          const p_smokeDensity = document.getElementById('param_smokeDensity');
-          const p_textPassOpacity = document.getElementById('param_textPassOpacity');
-          const p_rgbMode = document.getElementById('param_rgbMode');
-          const p_customColor = document.getElementById('param_customColor');
-          const p_stuntMode = document.getElementById('param_stuntMode');
+    const petContainer = document.getElementById('petContainer');
+    const stageContainer = document.getElementById('stageContainer');
+    const pauseAnimBtn = document.getElementById('pauseAnimBtn');
 
-          const config = {
-            hopHeight: 140,
-            hopDuration: 2.2,
-            flips: 1,
-            smokeDensity: 6,
-            textPassOpacity: 0.85,
-            rgbMode: 'random',
-            customColor: '#00f0ff',
-            stuntMode: 'random'
-          };
+    let isHopping = false;
+    let isPaused = false;
+    let currentX = 0;
+    let currentY = 0;
+    let currentPatrolSpeed = 2.0;
+    let idleAnimFrame = null;
+    let idleTargetX = 0;
+    let autoStuntTimer = null;
 
-          const paintThemes = [
-            { stops: ['#ec4899', '#8b5cf6'], glow: '#ec4899' },
-            { stops: ['#00f0ff', '#3b82f6'], glow: '#00f0ff' },
-            { stops: ['#f59e0b', '#ef4444'], glow: '#f59e0b' },
-            { stops: ['#10b981', '#06b6d4'], glow: '#10b981' },
-            { stops: ['#a855f7', '#ec4899'], glow: '#a855f7' }
-          ];
+    function initPosition() {
+      const stageRect = stageContainer.getBoundingClientRect();
+      currentX = stageRect.width / 2 - 30;
+      currentY = 0;
+      petContainer.style.transform = `translate3d(${currentX}px, ${currentY}px, 0px)`;
+      startIdlePatrol();
+      resetAutoStuntTimer();
+    }
 
-          let currentBtnIndex = 0;
-          let currentRatio = 0.5;
-          let currentX = 0;
-          let currentY = 0;
-          let isHopping = false;
+    function getRandomPatrolSpeed() {
+      const min = Math.min(config.patrolSpeedMin, config.patrolSpeedMax);
+      const max = Math.max(config.patrolSpeedMin, config.patrolSpeedMax);
+      return Math.random() * (max - min) + min;
+    }
 
-          let hopStartTime = 0;
-          let hopStartPos = { x: 0, y: 0 };
-          let hopTargetPos = { x: 0, y: 0 };
-          let currentGlowColor = '#00f0ff';
-          let activeTrajectory = 'parabola'; 
+    function startIdlePatrol() {
+      if (idleAnimFrame) cancelAnimationFrame(idleAnimFrame);
+      pickNewIdleTarget();
 
-          let lastTimestamp = performance.now();
-          let slideDirection = 1;
-
-          // 專為各種手機相容性優化的座標計算 (安全兜底防 0 座標)
-          function getPetPosOnButton(btnIdx, ratio) {
-            if (!stageContainer || !buttons[btnIdx]) return { x: 20, y: 20 };
-            const containerRect = stageContainer.getBoundingClientRect();
-            const btnRect = buttons[btnIdx].getBoundingClientRect();
-            
-            // 安全防護：若尺寸為 0，則按比例彈性分配
-            let btnLeft = btnRect.left - containerRect.left;
-            let btnTop = btnRect.top - containerRect.top;
-            let btnWidth = btnRect.width;
-
-            if (btnWidth <= 0 || containerRect.width <= 0) {
-              const approxStageW = stageContainer.clientWidth || 320;
-              btnWidth = 60;
-              btnLeft = (approxStageW / 5) * btnIdx + 10;
-              btnTop = 45;
-            }
-
-            const petWidth = 48;
-            const petHeight = 24;
-
-            const x = btnLeft + (btnWidth - petWidth) * ratio;
-            const y = btnTop - petHeight;
-
-            return { x, y };
+      function patrolStep() {
+        if (!isHopping && !isPaused) {
+          const dx = idleTargetX - currentX;
+          if (Math.abs(dx) < 3) {
+            pickNewIdleTarget();
+          } else {
+            const stepSpeed = (Math.sign(dx) * currentPatrolSpeed * 1.2);
+            currentX += stepSpeed;
+            const faceScaleX = Math.sign(dx) < 0 ? -1 : 1;
+            petContainer.style.transform = `translate3d(${currentX}px, ${currentY}px, 0px) scaleX(${faceScaleX})`;
           }
+        }
+        idleAnimFrame = requestAnimationFrame(patrolStep);
+      }
+      idleAnimFrame = requestAnimationFrame(patrolStep);
+    }
 
-          function applyRandomPaint() {
-            const theme = paintThemes[Math.floor(Math.random() * paintThemes.length)];
-            if (metallicPaint && metallicPaint.children.length >= 2) {
-              metallicPaint.children[0].setAttribute('stop-color', theme.stops[0]);
-              metallicPaint.children[1].setAttribute('stop-color', theme.stops[1]);
-            }
-            
-            if (config.rgbMode === 'random') {
-              currentGlowColor = theme.glow;
-            } else {
-              currentGlowColor = config.customColor;
-            }
-            if (underglow) underglow.setAttribute('fill', currentGlowColor);
-            if (pet) pet.style.setProperty('--glow-color', currentGlowColor);
+    function pickNewIdleTarget() {
+      const stageRect = stageContainer.getBoundingClientRect();
+      const minX = -40;
+      const maxX = stageRect.width + 10;
+      idleTargetX = Math.random() * (maxX - minX) + minX;
+      currentPatrolSpeed = getRandomPatrolSpeed();
+    }
+
+    function resetAutoStuntTimer() {
+      if (autoStuntTimer) clearTimeout(autoStuntTimer);
+      if (isPaused) return;
+
+      const nextDelay = Math.random() * 4000 + 3000;
+      autoStuntTimer = setTimeout(() => {
+        if (!isPaused) triggerFlight();
+        resetAutoStuntTimer();
+      }, nextDelay);
+    }
+
+    function selectModeByProbability() {
+      const v = config.probVTOL;
+      const s = config.probSpin;
+      const a = config.probArc;
+      const total = v + s + a;
+      if (total === 0) return 'arc';
+
+      const rand = Math.random() * total;
+      if (rand < v) return 'vtol';
+      if (rand < v + s) return 'spin';
+      return 'arc';
+    }
+
+    function triggerFlight() {
+      if (isHopping || isPaused) return;
+      isHopping = true;
+
+      const stageRect = stageContainer.getBoundingClientRect();
+      const startX = currentX;
+      const startY = currentY;
+      const endX = Math.random() * (stageRect.width + 60) - 30;
+
+      const activeMode = config.stuntMode === 'random' 
+        ? selectModeByProbability()
+        : config.stuntMode;
+
+      const startTime = performance.now();
+      const duration = config.flightDuration * 1000;
+      const maxSpin = config.spinCount * 360;
+
+      if (config.trailGlow) {
+        petContainer.classList.add('tesla-midair-glow');
+      }
+
+      function animate(now) {
+        if (isPaused) {
+          requestAnimationFrame(animate);
+          return;
+        }
+
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        let x = startX;
+        let y = startY;
+        let rotation = 0;
+        let opacity = 1;
+
+        if (activeMode === 'vtol') {
+          if (progress < 0.3) {
+            const sub = progress / 0.3;
+            x = startX;
+            y = startY - (sub * config.arcHeight);
+          } else if (progress < 0.7) {
+            const sub = (progress - 0.3) / 0.4;
+            x = startX + (endX - startX) * sub;
+            y = startY - config.arcHeight;
+            opacity = config.textPassOpacity;
+          } else {
+            const sub = (progress - 0.7) / 0.3;
+            x = endX;
+            y = (startY - config.arcHeight) + (sub * config.arcHeight);
           }
+        } else {
+          x = startX + (endX - startX) * progress;
+          const arcY = Math.sin(progress * Math.PI) * config.arcHeight;
+          y = startY - arcY;
+          rotation = (activeMode === 'spin') ? progress * maxSpin : 0;
+          opacity = 1 - (Math.sin(progress * Math.PI) * (1 - config.textPassOpacity));
+        }
 
-          function getNextEnabledButtonIndex() {
-            const enabledIndices = checkboxes
-              .filter(cb => cb.checked)
-              .map(cb => parseInt(cb.getAttribute('data-index')));
-            
-            if (enabledIndices.length === 0) return currentBtnIndex;
-            
-            const candidates = enabledIndices.filter(idx => idx !== currentBtnIndex);
-            if (candidates.length === 0) return currentBtnIndex;
-            
-            return candidates[Math.floor(Math.random() * candidates.length)];
-          }
+        const tiltPerspective = Math.sin(progress * Math.PI * 2) * 15;
+        petContainer.style.transform = `translate3d(${x}px, ${y}px, 0px) rotate(${rotation}deg) rotateX(${tiltPerspective}deg)`;
+        petContainer.style.opacity = opacity;
 
-          function startHop() {
-            const targetIdx = getNextEnabledButtonIndex();
-            if (targetIdx === currentBtnIndex) return;
+        if (config.smokeDensity > 0 && Math.random() < (config.smokeDensity / 10)) {
+          createSmokeParticle(x + 24, y + 36);
+        }
 
-            applyRandomPaint();
-
-            hopStartPos = getPetPosOnButton(currentBtnIndex, currentRatio);
-            hopTargetPos = getPetPosOnButton(targetIdx, 0.5);
-
-            currentBtnIndex = targetIdx;
-            currentRatio = 0.5;
-
-            if (config.stuntMode === 'random') {
-              activeTrajectory = Math.random() > 0.5 ? 'parabola' : 'wave';
-            } else {
-              activeTrajectory = config.stuntMode;
-            }
-
-            isHopping = true;
-            hopStartTime = performance.now();
-            if (pet) pet.classList.add('tesla-midair-glow');
-          }
-
-          function spawnGhostTrail(x, y, rot, opacity) {
-            if (!stageContainer) return;
-            const ghost = document.createElement('div');
-            ghost.className = 'ghost-trail';
-            ghost.style.setProperty('--g-transform', `translate3d(${x}px, ${y}px, 0px) rotate(${rot}deg)`);
-            ghost.style.webkitTransform = `translate3d(${x}px, ${y}px, 0px) rotate(${rot}deg)`;
-            ghost.style.opacity = opacity;
-            ghost.innerHTML = `<svg viewBox="0 0 100 50" width="100%" height="100%" class="w-full h-full"><use href="#teslaSvg"/></svg>`;
-            stageContainer.appendChild(ghost);
-            setTimeout(() => ghost.remove(), 400);
-          }
-
-          function spawnParticles(x, y) {
-            if (config.smokeDensity === 0 || !stageContainer) return;
-            const count = Math.ceil(config.smokeDensity / 3);
-            
-            for (let i = 0; i < count; i++) {
-              const p = document.createElement('div');
-              p.className = 'thruster-particle';
-              const size = Math.random() * 8 + 4;
-              p.style.width = `${size}px`;
-              p.style.height = `${size}px`;
-              p.style.background = currentGlowColor;
-              p.style.boxShadow = `0 0 8px ${currentGlowColor}`;
-              p.style.left = `${x + 20}px`;
-              p.style.top = `${y + 20}px`;
-              p.style.setProperty('--dx', `${(Math.random() - 0.5) * 30}px`);
-              p.style.setProperty('--dy', `${Math.random() * 20 + 10}px`);
-              stageContainer.appendChild(p);
-              setTimeout(() => p.remove(), 600);
-            }
-          }
-
-          function updateLoop(now) {
-            const dt = (now - lastTimestamp) / 1000;
-            lastTimestamp = now;
-
-            if (isHopping) {
-              const elapsed = (now - hopStartTime) / 1000;
-              const progress = Math.min(elapsed / config.hopDuration, 1.0);
-
-              let x = hopStartPos.x + (hopTargetPos.x - hopStartPos.x) * progress;
-              let y = 0;
-              let rotation = 0;
-
-              if (activeTrajectory === 'parabola') {
-                const arcHeight = Math.sin(progress * Math.PI) * config.hopHeight;
-                y = (hopStartPos.y + (hopTargetPos.y - hopStartPos.y) * progress) - arcHeight;
-                rotation = progress * (360 * config.flips);
-              } else {
-                const waveHeight = Math.sin(progress * Math.PI * 2) * (config.hopHeight * 0.6);
-                const mainArc = Math.sin(progress * Math.PI) * config.hopHeight;
-                y = (hopStartPos.y + (hopTargetPos.y - hopStartPos.y) * progress) - mainArc + waveHeight;
-                rotation = Math.sin(progress * Math.PI * 2) * 45 + progress * (360 * config.flips);
-              }
-
-              currentX = x;
-              currentY = y;
-              if (pet) {
-                pet.style.opacity = config.textPassOpacity;
-                pet.style.transform = `translate3d(${x}px, ${y}px, 0px) rotate(${rotation}deg)`;
-                pet.style.webkitTransform = `translate3d(${x}px, ${y}px, 0px) rotate(${rotation}deg)`;
-              }
-
-              if (Math.random() < 0.4) spawnGhostTrail(x, y, rotation, config.textPassOpacity * 0.5);
-              spawnParticles(x, y);
-
-              if (progress >= 1.0) {
-                isHopping = false;
-                if (pet) {
-                  pet.style.opacity = 1.0;
-                  pet.style.transform = `translate3d(${hopTargetPos.x}px, ${hopTargetPos.y}px, 0px) rotate(0deg)`;
-                  pet.style.webkitTransform = `translate3d(${hopTargetPos.x}px, ${hopTargetPos.y}px, 0px) rotate(0deg)`;
-                  pet.classList.remove('tesla-midair-glow');
-                }
-                setTimeout(startHop, 1500);
-              }
-            } else {
-              currentRatio += slideDirection * dt * 0.25;
-              if (currentRatio >= 0.9) { currentRatio = 0.9; slideDirection = -1; }
-              if (currentRatio <= 0.1) { currentRatio = 0.1; slideDirection = 1; }
-
-              const pos = getPetPosOnButton(currentBtnIndex, currentRatio);
-              currentX = pos.x;
-              currentY = pos.y;
-              if (pet) {
-                pet.style.transform = `translate3d(${currentX}px, ${currentY}px, 0px)`;
-                pet.style.webkitTransform = `translate3d(${currentX}px, ${currentY}px, 0px)`;
-              }
-            }
-
-            requestAnimationFrame(updateLoop);
-          }
-
-          // 面板參數連動監聽
-          if (p_hopHeight) p_hopHeight.addEventListener('input', (e) => {
-            config.hopHeight = parseFloat(e.target.value);
-            document.getElementById('val_hopHeight').innerText = `${config.hopHeight}px`;
-          });
-          if (p_hopDuration) p_hopDuration.addEventListener('input', (e) => {
-            config.hopDuration = parseFloat(e.target.value);
-            document.getElementById('val_hopDuration').innerText = `${config.hopDuration}s`;
-          });
-          if (p_flips) p_flips.addEventListener('input', (e) => {
-            config.flips = parseInt(e.target.value);
-            document.getElementById('val_flips').innerText = `${config.flips} 圈`;
-          });
-          if (p_smokeDensity) p_smokeDensity.addEventListener('input', (e) => {
-            config.smokeDensity = parseInt(e.target.value);
-            document.getElementById('val_smokeDensity').innerText = config.smokeDensity;
-          });
-          if (p_textPassOpacity) p_textPassOpacity.addEventListener('input', (e) => {
-            config.textPassOpacity = parseFloat(e.target.value);
-            document.getElementById('val_textPassOpacity').innerText = config.textPassOpacity;
-          });
-          if (p_rgbMode) p_rgbMode.addEventListener('change', (e) => {
-            config.rgbMode = e.target.value;
-            document.getElementById('val_rgbMode').innerText = e.target.options[e.target.selectedIndex].text;
-          });
-          if (p_customColor) p_customColor.addEventListener('input', (e) => {
-            config.customColor = e.target.value;
-            if (config.rgbMode === 'custom') {
-              currentGlowColor = config.customColor;
-              if (underglow) underglow.setAttribute('fill', currentGlowColor);
-            }
-          });
-          if (p_stuntMode) p_stuntMode.addEventListener('change', (e) => {
-            config.stuntMode = e.target.value;
-          });
-
-          // 觸控與點擊點發器
-          const handleTrigger = (e) => {
-            if (e && e.cancelable) e.preventDefault();
-            startHop();
-          };
-
-          if (triggerStuntBtn) {
-            triggerStuntBtn.addEventListener('click', handleTrigger);
-            triggerStuntBtn.addEventListener('touchstart', handleTrigger, { passive: false });
-          }
-
-          if (exportJsonBtn) {
-            exportJsonBtn.addEventListener('click', () => {
-              const jsonStr = JSON.stringify(config, null, 2);
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(jsonStr).then(() => {
-                  alert("📋 JSON 設定檔已成功複製到剪貼簿！\n\n" + jsonStr);
-                }).catch(() => {
-                  prompt("請手動複製以下 JSON 設定檔：", jsonStr);
-                });
-              } else {
-                prompt("請手動複製以下 JSON 設定檔：", jsonStr);
-              }
-            });
-          }
-
-          // 啟動主動態迴圈
-          applyRandomPaint();
-          
-          const initRun = () => {
-            const startPos = getPetPosOnButton(currentBtnIndex, currentRatio);
-            currentX = startPos.x;
-            currentY = startPos.y;
-            if (pet) {
-              pet.style.transform = `translate3d(${currentX}px, ${currentY}px, 0px)`;
-              pet.style.webkitTransform = `translate3d(${currentX}px, ${currentY}px, 0px)`;
-            }
-            lastTimestamp = performance.now();
-            requestAnimationFrame(updateLoop);
-            setTimeout(startHop, 1200);
-          };
-
-          setTimeout(initRun, 300);
-
-          window.addEventListener('resize', () => {
-            if (!isHopping) {
-              const pos = getPetPosOnButton(currentBtnIndex, currentRatio);
-              if (pet) {
-                pet.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0px)`;
-                pet.style.webkitTransform = `translate3d(${pos.x}px, ${pos.y}px, 0px)`;
-              }
-            }
-          });
-        } catch(err) {
-          console.error("Tesla App initialization error: ", err);
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          currentX = endX;
+          currentY = startY;
+          isHopping = false;
+          petContainer.classList.remove('tesla-midair-glow');
+          petContainer.style.opacity = 1;
+          petContainer.style.transform = `translate3d(${currentX}px, ${currentY}px, 0px) scaleX(1)`;
+          pickNewIdleTarget();
         }
       }
 
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        startApp();
+      requestAnimationFrame(animate);
+    }
+
+    function createSmokeParticle(x, y) {
+      if (isPaused) return;
+      const p = document.createElement('div');
+      p.className = 'thruster-particle';
+      const size = Math.random() * 8 + 4;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+      p.style.left = `${x}px`;
+      p.style.top = `${y}px`;
+      p.style.background = `rgba(255, 255, 255, 0.9)`;
+      p.style.boxShadow = `0 0 6px #ffffff`;
+      stageContainer.appendChild(p);
+      setTimeout(() => p.remove(), 500);
+    }
+
+    function updateProbUI() {
+      document.getElementById('val_probVTOL').innerText = `${config.probVTOL}%`;
+      document.getElementById('val_probSpin').innerText = `${config.probSpin}%`;
+      document.getElementById('val_probArc').innerText = `${config.probArc}%`;
+      const total = config.probVTOL + config.probSpin + config.probArc;
+      const totalEl = document.getElementById('val_probTotal');
+      totalEl.innerText = `${total}%`;
+      totalEl.style.color = total === 100 ? '#38bdf8' : '#f43f5e';
+    }
+
+    function updateSpeedUI() {
+      const min = Math.min(config.patrolSpeedMin, config.patrolSpeedMax);
+      const max = Math.max(config.patrolSpeedMin, config.patrolSpeedMax);
+      document.getElementById('val_patrolSpeed').innerText = `${min.toFixed(1)} - ${max.toFixed(1)}x`;
+    }
+
+    document.getElementById('param_stuntMode').addEventListener('change', (e) => {
+      config.stuntMode = e.target.value;
+      document.getElementById('probPanel').style.display = config.stuntMode === 'random' ? 'block' : 'none';
+    });
+
+    document.getElementById('param_probVTOL').addEventListener('input', (e) => {
+      config.probVTOL = parseInt(e.target.value);
+      updateProbUI();
+    });
+
+    document.getElementById('param_probSpin').addEventListener('input', (e) => {
+      config.probSpin = parseInt(e.target.value);
+      updateProbUI();
+    });
+
+    document.getElementById('param_probArc').addEventListener('input', (e) => {
+      config.probArc = parseInt(e.target.value);
+      updateProbUI();
+    });
+
+    document.getElementById('param_arcHeight').addEventListener('input', (e) => {
+      config.arcHeight = parseFloat(e.target.value);
+      document.getElementById('val_arcHeight').innerText = `${config.arcHeight}px`;
+    });
+
+    document.getElementById('param_flightDuration').addEventListener('input', (e) => {
+      config.flightDuration = parseFloat(e.target.value);
+      document.getElementById('val_flightDuration').innerText = `${config.flightDuration}s`;
+    });
+
+    document.getElementById('param_spinCount').addEventListener('input', (e) => {
+      config.spinCount = parseInt(e.target.value);
+      document.getElementById('val_spinCount').innerText = `${config.spinCount} 圈`;
+    });
+
+    document.getElementById('param_patrolSpeedMin').addEventListener('input', (e) => {
+      config.patrolSpeedMin = parseFloat(e.target.value);
+      updateSpeedUI();
+    });
+
+    document.getElementById('param_patrolSpeedMax').addEventListener('input', (e) => {
+      config.patrolSpeedMax = parseFloat(e.target.value);
+      updateSpeedUI();
+    });
+
+    document.getElementById('param_smokeDensity').addEventListener('input', (e) => {
+      config.smokeDensity = parseInt(e.target.value);
+      document.getElementById('val_smokeDensity').innerText = config.smokeDensity;
+    });
+
+    document.getElementById('param_trailGlow').addEventListener('change', (e) => {
+      config.trailGlow = e.target.checked;
+    });
+
+    pauseAnimBtn.addEventListener('click', () => {
+      isPaused = !isPaused;
+      if (isPaused) {
+        pauseAnimBtn.innerText = '▶️ 繼續動畫';
+        pauseAnimBtn.style.background = '#22c55e';
+        if (autoStuntTimer) clearTimeout(autoStuntTimer);
       } else {
-        window.addEventListener('DOMContentLoaded', startApp);
-        window.addEventListener('load', startApp);
+        pauseAnimBtn.innerText = '⏸️ 暫停動畫';
+        pauseAnimBtn.style.background = '#eab308';
+        resetAutoStuntTimer();
       }
-    })();
+    });
+
+    document.getElementById('manualTriggerBtn').addEventListener('click', triggerFlight);
+
+    document.getElementById('resetDefaultsBtn').addEventListener('click', () => {
+      config = { ...DEFAULT_CONFIG };
+      document.getElementById('param_stuntMode').value = config.stuntMode;
+      document.getElementById('probPanel').style.display = 'block';
+      document.getElementById('param_probVTOL').value = config.probVTOL;
+      document.getElementById('param_probSpin').value = config.probSpin;
+      document.getElementById('param_probArc').value = config.probArc;
+      updateProbUI();
+
+      document.getElementById('param_arcHeight').value = config.arcHeight;
+      document.getElementById('val_arcHeight').innerText = `${config.arcHeight}px`;
+
+      document.getElementById('param_flightDuration').value = config.flightDuration;
+      document.getElementById('val_flightDuration').innerText = `${config.flightDuration}s`;
+
+      document.getElementById('param_spinCount').value = config.spinCount;
+      document.getElementById('val_spinCount').innerText = `${config.spinCount} 圈`;
+
+      document.getElementById('param_patrolSpeedMin').value = config.patrolSpeedMin;
+      document.getElementById('param_patrolSpeedMax').value = config.patrolSpeedMax;
+      updateSpeedUI();
+
+      document.getElementById('param_smokeDensity').value = config.smokeDensity;
+      document.getElementById('val_smokeDensity').innerText = config.smokeDensity;
+
+      document.getElementById('param_trailGlow').checked = config.trailGlow;
+
+      if (isPaused) {
+        isPaused = false;
+        pauseAnimBtn.innerText = '⏸️ 暫停動畫';
+        pauseAnimBtn.style.background = '#eab308';
+      }
+      resetAutoStuntTimer();
+    });
+
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      const jsonStr = JSON.stringify(config, null, 2);
+      const tempInput = document.createElement('textarea');
+      tempInput.value = jsonStr;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      alert('已複製 JSON 參數設定檔！');
+    });
+
+    window.addEventListener('load', () => {
+      setTimeout(initPosition, 200);
+    });
+    window.addEventListener('resize', initPosition);
   </script>
 </body>
 </html>
