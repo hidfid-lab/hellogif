@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>炫彩特斯拉飛越框框巡邏展示</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f17;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    /* 隱藏橫向滾動條但保持滾動功能 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* 按鈕脈衝發光邊框特效 */
+    .glow-btn {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #f8fafc;
+      border: 2px solid #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4), inset 0 0 8px rgba(56, 189, 248, 0.2);
+      transition: all 0.3s ease;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .glow-btn:hover {
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.8), inset 0 0 12px rgba(56, 189, 248, 0.4);
+      border-color: #7dd3fc;
+    }
+
+    /* 車身精靈容器：提高 z-index 確保特技飛躍時可疊在頂部文字與標題上方 */
+    #petContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 48px;
+      height: 24px;
+      pointer-events: none;
+      z-index: 100;
+      will-change: transform;
+    }
+
+    #petSvg {
+      transition: transform 0.1s linear;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 sm:p-8">
+
+  <!-- 頂部頁首區塊：將 z-index 設為 z-0，並縮小下方邊距 (mb-0)，讓字體靠按鈕更近，並可被特斯拉 (z-100) 在視覺上層劃過 -->
+  <header class="text-center mt-2 mb-0 relative z-0">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-2">
+      <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+      SpaceX / Tesla 特技飛越模擬系統
+    </div>
+    <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white mb-1">
+      炫彩特斯拉 <span class="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">飛越黃河</span> 巡邏系統
+    </h1>
+    <p class="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
+      特斯拉可在已勾選的按鈕間進行 360° 空翻慢動作飛越與上緣極速滑行。
+    </p>
+  </header>
+
+  <!-- 主舞台區域：取消 overflow 限制，讓特斯拉可自由飛躍重疊至上方文字 -->
+  <main class="w-full max-w-5xl mx-auto my-auto relative z-20 overflow-visible pt-2">
+    <div id="stageContainer" class="relative w-full flex items-center justify-start sm:justify-center gap-3 sm:gap-4 overflow-visible pb-8 pt-10 px-4 border border-slate-800/80 rounded-3xl bg-slate-950/40 backdrop-blur-sm">
+      
+      <!-- 5 個指定發光按鈕 (並排 single-row)，包含獨立核取方塊 -->
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="0" title="勾選以允許特斯拉跳躍至此按鈕">
+        <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+          <span>🎬 GIF 動畫</span>
+          <span class="bg-red-500 text-white text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">新功能</span>
+        </button>
+      </div>
+
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="1" title="勾選以允許特斯拉跳躍至此按鈕">
+        <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+          <span>🎵 加音樂</span>
+          <span class="bg-red-500 text-white text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold">新</span>
+        </button>
+      </div>
+
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="2" title="勾選以允許特斯拉跳躍至此按鈕">
+        <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+          <span>🎨 標題樣式</span>
+        </button>
+      </div>
+
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="3" title="勾選以允許特斯拉跳躍至此按鈕">
+        <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+          <span>✨ 特效相框</span>
+        </button>
+      </div>
+
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="4" title="勾選以允許特斯拉跳躍至此按鈕">
+        <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+          <span>🎲 隨機設定</span>
+          <span class="bg-amber-500 text-slate-950 text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold">HOT</span>
+        </button>
+      </div>
+
+      <!-- 特斯拉 Cyber-Car SVG 精靈 -->
+      <div id="petContainer">
+        <svg id="petSvg" viewBox="0 0 100 50" class="w-full h-full overflow-visible">
+          <g id="teslaBody">
+            <!-- 跑車輪廓底部陰影/發光底盤 -->
+            <ellipse cx="50" cy="42" rx="42" ry="5" fill="#38bdf8" opacity="0.6" id="underglow"/>
+
+            <!-- 火箭後推進與底部 RCS 輔助噴嘴光芒 -->
+            <path id="thrusterGlow" d="M 0 35 L -15 32 L -15 38 Z" fill="#38bdf8" opacity="0" class="transition-opacity"/>
+            <ellipse id="bottomRcsGlow" cx="50" cy="46" rx="20" ry="4" fill="#00f0ff" opacity="0"/>
+            
+            <!-- 特斯拉 Cyber 車身主體 -->
+            <path id="carShell" d="M 8 36 L 22 22 L 48 14 L 80 24 L 94 36 Z" fill="#ec4899" stroke="#f472b6" stroke-width="2"/>
+            
+            <!-- 車窗/玻璃頂蓋 -->
+            <polygon points="26,22 46,16 74,24 55,24" fill="#0f172a" opacity="0.85"/>
+            <polygon points="26,22 46,16 74,24 55,24" stroke="#38bdf8" stroke-width="1" fill="none"/>
+
+            <!-- 醒目的特斯拉標誌 Tesla "T" Logo -->
+            <g transform="translate(62, 27) scale(0.65)">
+              <path d="M 0 0 L 10 0 L 5 2 Z M 3 2 L 7 2 L 7 10 L 5 12 L 3 10 Z" fill="#ffffff" filter="drop-shadow(0 0 2px #38bdf8)"/>
+            </g>
+            
+            <!-- 車前與車尾 LED 燈條 -->
+            <line x1="90" y1="34" x2="94" y2="36" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" id="headLight"/>
+            <line x1="8" y1="35" x2="14" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- 前後輪圈 -->
+            <circle cx="26" cy="38" r="7" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+            <circle cx="26" cy="38" r="3" fill="#38bdf8" id="wheelFront"/>
+            <circle cx="74" cy="38" r="7" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+            <circle cx="74" cy="38" r="3" fill="#38bdf8" id="wheelBack"/>
+          </g>
+        </svg>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 底部即時控制台面板 -->
+  <footer class="max-w-xl mx-auto w-full bg-slate-900/90 border border-slate-800 p-4 rounded-2xl backdrop-blur-md shadow-2xl my-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <span class="text-xs font-semibold text-slate-300 whitespace-nowrap">⚡ 滑行速度</span>
+        <input type="range" id="speedInput" min="0.1" max="0.8" step="0.05" value="0.35" class="w-full sm:w-32 accent-cyan-400 cursor-pointer">
+      </div>
+      <button id="manualHopBtn" class="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+        🚀 立即發射「飛越黃河」
+      </button>
+    </div>
+  </footer>
+
+  <!-- 動態邏輯腳本 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM 元素引用
+      const stageContainer = document.getElementById('stageContainer');
+      const buttons = Array.from(stageContainer.querySelectorAll('.glow-btn'));
+      const checkboxes = Array.from(stageContainer.querySelectorAll('.btn-enable-checkbox'));
+      const pet = document.getElementById('petContainer');
+      const petSvg = document.getElementById('petSvg');
+      const carShell = document.getElementById('carShell');
+      const underglow = document.getElementById('underglow');
+      const thrusterGlow = document.getElementById('thrusterGlow');
+      const bottomRcsGlow = document.getElementById('bottomRcsGlow');
+
+      // 全域狀態變數宣告
+      let currentBtnIndex = 0;
+      let currentX = 0;
+      let currentY = 0;
+      let currentRatio = 0.5;
+      let targetRatio = 0.5;
+      let facing = 1;
+
+      let slideSpeed = 0.35; // 邊框滑行速度
+      let isHopping = false;
+
+      let hopProgress = 0;
+      let hopStartIdx = 0;
+      let hopTargetIdx = 0;
+      let hopDuration = 2200; // 慢動作空翻跳躍持續時間 (ms)
+
+      let lastTimestamp = 0;
+      let hopTimer = null;
+
+      // 計算特斯拉緊貼按鈕邊框時的精確相對座標
+      function getPetPosOnButton(btnIdx, ratio) {
+        const btn = buttons[btnIdx];
+        const btnRect = btn.getBoundingClientRect();
+        const stageRect = stageContainer.getBoundingClientRect();
+
+        const relativeLeft = btnRect.left - stageRect.left;
+        const relativeTop = btnRect.top - stageRect.top;
+
+        const carWidth = 48;
+        const x = relativeLeft + (btnRect.width - carWidth) * ratio;
+        // 緊貼上緣定位
+        const y = relativeTop - 18;
+
+        return { x, y };
+      }
+
+      // 取得隨機已勾選的按鈕索引
+      function getRandomButtonIndex() {
+        const enabledIndices = checkboxes
+          .map((cb, idx) => cb.checked ? idx : -1)
+          .filter(idx => idx !== -1);
+
+        if (enabledIndices.length === 0) {
+          return currentBtnIndex;
+        }
+
+        const candidates = enabledIndices.filter(idx => idx !== currentBtnIndex);
+        if (candidates.length > 0) {
+          return candidates[Math.floor(Math.random() * candidates.length)];
+        }
+        return enabledIndices[0];
+      }
+
+      // 為特斯拉隨機塗裝包膜顏色與底盤發光
+      function applyRandomPaint() {
+        const paints = [
+          { shell: '#ec4899', stroke: '#f472b6', glow: '#f472b6' }, // 霓虹粉
+          { shell: '#06b6d4', stroke: '#67e8f9', glow: '#38bdf8' }, // 電光藍
+          { shell: '#eab308', stroke: '#fde047', glow: '#facc15' }, // 炫目金
+          { shell: '#84cc16', stroke: '#bef264', glow: '#a3e635' }, // 毒液綠
+          { shell: '#a855f7', stroke: '#d8b4fe', glow: '#c084fc' }, // 魅影紫
+          { shell: '#64748b', stroke: '#cbd5e1', glow: '#94a3b8' }  // 鈦銀灰
+        ];
+        const pick = paints[Math.floor(Math.random() * paints.length)];
+        if (carShell) {
+          carShell.setAttribute('fill', pick.shell);
+          carShell.setAttribute('stroke', pick.stroke);
+        }
+        if (underglow) {
+          underglow.setAttribute('fill', pick.glow);
+        }
+      }
+
+      // 初始化特斯拉與啟動繪圈 Loop
+      function initPet() {
+        applyRandomPaint();
+        currentBtnIndex = getRandomButtonIndex();
+        const pos = getPetPosOnButton(currentBtnIndex, targetRatio);
+        currentX = pos.x;
+        currentY = pos.y;
+        pet.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        
+        requestAnimationFrame(updateLoop);
+        scheduleNextHop();
+      }
+
+      // 跳躍計時排程
+      function scheduleNextHop() {
+        if (hopTimer) clearTimeout(hopTimer);
+        const nextTime = Math.random() * 3000 + 3500;
+        hopTimer = setTimeout(() => {
+          if (!isHopping) {
+            const nextIdx = getRandomButtonIndex();
+            if (nextIdx !== currentBtnIndex) {
+              startHop(nextIdx);
+            }
+          }
+          scheduleNextHop();
+        }, nextTime);
+      }
+
+      // 開啟 360° 慢動作「飛越黃河」特技跳躍
+      function startHop(targetIdx) {
+        isHopping = true;
+        hopProgress = 0;
+        hopStartIdx = currentBtnIndex;
+        hopTargetIdx = targetIdx;
+
+        applyRandomPaint();
+
+        const startPos = getPetPosOnButton(hopStartIdx, currentRatio);
+        const endPos = getPetPosOnButton(hopTargetIdx, 0.5);
+        facing = endPos.x >= startPos.x ? 1 : -1;
+
+        if (thrusterGlow) thrusterGlow.setAttribute('opacity', '0.9');
+        if (bottomRcsGlow) bottomRcsGlow.setAttribute('opacity', '0.8');
+      }
+
+      // 主動畫迴圈
+      function updateLoop(timestamp) {
+        const delta = timestamp - lastTimestamp || 16.66;
+        lastTimestamp = timestamp;
+
+        if (isHopping) {
+          // 慢動作 360° 空翻飛越處理
+          hopProgress += delta / hopDuration;
+          if (hopProgress >= 1) {
+            hopProgress = 1;
+            isHopping = false;
+            currentBtnIndex = hopTargetIdx;
+            currentRatio = 0.5;
+            targetRatio = Math.random();
+
+            if (thrusterGlow) thrusterGlow.setAttribute('opacity', '0');
+            if (bottomRcsGlow) bottomRcsGlow.setAttribute('opacity', '0');
+            petSvg.style.transform = `scaleX(${facing})`;
+          } else {
+            const startPos = getPetPosOnButton(hopStartIdx, currentRatio);
+            const endPos = getPetPosOnButton(hopTargetIdx, 0.5);
+
+            currentX = startPos.x + (endPos.x - startPos.x) * hopProgress;
+            // 拋物線高度升至 120px，向上跨越重疊至標題文字區域
+            const arc = Math.sin(hopProgress * Math.PI) * 120;
+            currentY = startPos.y + (endPos.y - startPos.y) * hopProgress - arc;
+
+            // 360° 特技空翻旋轉
+            const spin = hopProgress * 360 * facing;
+            petSvg.style.transform = `scaleX(${facing}) rotate(${spin}deg)`;
+          }
+        } else {
+          // 在按鈕頂端巡邏滑行
+          const pos = getPetPosOnButton(currentBtnIndex, currentRatio);
+          currentX = pos.x;
+          currentY = pos.y;
+
+          if (Math.abs(targetRatio - currentRatio) > 0.01) {
+            const dir = targetRatio > currentRatio ? 1 : -1;
+            facing = dir;
+            currentRatio += dir * (slideSpeed * (delta / 1000));
+            petSvg.style.transform = `scaleX(${facing})`;
+          } else {
+            targetRatio = Math.random();
+          }
+        }
+
+        pet.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        requestAnimationFrame(updateLoop);
+      }
+
+      // 控制面板與 Checkbox 事件
+      const speedInput = document.getElementById('speedInput');
+      if (speedInput) {
+        speedInput.addEventListener('input', (e) => {
+          slideSpeed = parseFloat(e.target.value);
+        });
+      }
+
+      const manualHopBtn = document.getElementById('manualHopBtn');
+      if (manualHopBtn) {
+        manualHopBtn.addEventListener('click', () => {
+          if (!isHopping) {
+            const nextIdx = getRandomButtonIndex();
+            startHop(nextIdx);
+          }
+        });
+      }
+
+      // 視窗調整大小時更新絕對座標
+      window.addEventListener('resize', () => {
+        if (!isHopping) {
+          const pos = getPetPosOnButton(currentBtnIndex, currentRatio);
+          currentX = pos.x;
+          currentY = pos.y;
+          pet.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        }
+      });
+
+      // 啟動專案
+      initPet();
+    });
+  </script>
+</body>
+</html>
