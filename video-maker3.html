@@ -34,6 +34,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
   </div>
   <div class="flex flex-wrap items-center justify-center gap-1.5">
     <button id="bPlay" class="chip sm">▶ 預覽</button>
+    <button id="bPlayHere" class="chip sm">▶ 從選取片段</button>
     <button id="bStop" class="chip sm">■</button>
     <button id="bSnap" class="chip sm">📷</button>
     <button data-a="9:16" class="asp chip sm on">9:16</button>
@@ -43,14 +44,14 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
   </div>
   <div class="rounded-xl bg-neutral-900 border border-neutral-800 p-2">
     <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
-      <label class="chip sm cursor-pointer">＋🎬影片<input type="file" id="fVid" accept="video/*" multiple class="hidden"></label>
-      <label class="chip sm cursor-pointer">＋🖼️照片<input type="file" id="fImg" accept="image/*" multiple class="hidden"></label>
+      <label class="chip sm cursor-pointer" style="background:#dc2626;border-color:#ef4444;color:#fff;font-weight:700">＋🎬影片<input type="file" id="fVid" accept="video/*" multiple class="hidden"></label>
+      <label class="chip sm cursor-pointer" style="background:#dc2626;border-color:#ef4444;color:#fff;font-weight:700">＋🖼️照片<input type="file" id="fImg" accept="image/*" multiple class="hidden"></label>
       <button id="bL" class="chip sm" title="往前移">◀</button><button id="bR" class="chip sm" title="往後移">▶</button>
       <button id="bDup" class="chip sm">複製</button><button id="bDel" class="chip sm !text-red-300">刪除</button>
       <span class="text-xs text-neutral-400 ml-auto">總長 <b id="totalT" class="text-amber-300">0</b> 秒</span>
     </div>
-    <div id="stripWrap" class="overflow-x-auto"><div id="strip" class="relative" style="height:84px"></div></div>
-    <p class="text-[10px] text-neutral-500 mt-1">橘色邊緣可拖曳調整片段長度 ‧ 🔤 是全片文字 ‧ 🔊 是音效（可左右拖曳）</p>
+    <div id="stripWrap" class="overflow-x-auto"><div id="strip" class="relative" style="height:102px"></div></div>
+    <p class="text-[10px] text-neutral-500 mt-1">點上方灰色尺標可指定預覽起點 ‧ 橘色邊緣拖曳調整片段長度 ‧ 🔤 全片文字 ‧ 🔊 音效（可左右拖曳）</p>
   </div>
   <p id="stat" class="text-[11px] text-neutral-400 text-center min-h-[14px]"></p>
 </section>
@@ -126,6 +127,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
             <div><label class="l"><span id="lIn">出現時間</span><span id="vIn"></span></label><input type="range" id="eIn" min="0" max="10" step="0.1"></div>
             <div><label class="l"><span id="lOut">消失時間</span><span id="vOut"></span></label><input type="range" id="eOut" min="0.5" max="10" step="0.1"></div>
           </div>
+          <div id="gSpan" class="flex flex-wrap gap-2 hidden"><button id="bSpanClip" class="chip sm">📌 對齊目前選的片段</button><button id="bSpanAll" class="chip sm">📽️ 整支影片</button></div>
           <div class="flex flex-wrap gap-4 text-sm">
             <label class="flex items-center gap-2"><input type="checkbox" id="eStroke" class="accent-amber-500"> 黑色描邊</label>
             <label class="flex items-center gap-2"><input type="checkbox" id="eBg" class="accent-amber-500"> 半透明底色</label>
@@ -167,7 +169,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),mctx=cv.getContext('2d'),T2=2*Math.PI,CF='filter' in mctx;let ctx=mctx;
 const oa=document.createElement('canvas'),ob=document.createElement('canvas');
-let W=540,H=960,asp='9:16',Q=540,clips=[],gTexts=[],sfx=[],sel=-1,selT=-1,selK='c',playing=false,raf=0,T0=0,exp=false,uid=0,mFile=null,mBuf=null,mAud=null,drag=null,TD=.8,actSet=[],gv=1,ivs=0,pac=null,sfxSrc=[],ppsLock=0,ppsCur=24,op=null;
+let W=540,H=960,asp='9:16',Q=540,clips=[],gTexts=[],sfx=[],sel=-1,selT=-1,selK='c',playing=false,raf=0,T0=0,exp=false,uid=0,mFile=null,mBuf=null,mAud=null,drag=null,TD=.8,actSet=[],gv=1,ivs=0,pac=null,sfxSrc=[],ppsLock=0,ppsCur=24,op=null,startAt=0,PS=0;
 const PT=(()=>{let q=7;const r=()=>(q=(q*16807)%2147483647)/2147483647;return Array.from({length:70},()=>({x:r(),y:r(),r:r(),c:1+Math.floor(r()*2),ph:r()*6.28}))})();
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -203,25 +205,33 @@ function refreshAll(){renderStrip();syncEditor();renderTexts();syncText();setMus
 
 // ---------- 時間軸縮圖條 ----------
 function renderStrip(){const L=tl(),tot=Math.max(total(),1),ww=Math.max(200,$('stripWrap').clientWidth-4),pps=ppsLock||Math.max(24,ww/tot),st=$('strip');
-  ppsCur=pps;st.style.width=Math.max(ww,tot*pps+8)+'px';let h='';
-  clips.forEach((c,i)=>{h+=`<div data-clip="${i}" style="position:absolute;left:${L[i].s*pps}px;top:0;width:${Math.max(24,c.dur*pps)}px;height:40px;border-radius:8px;overflow:hidden;border:2px solid ${i===sel?'#f59e0b':'#525252'};background:#333 ${c.th?`url('${c.th}') center/cover`:''};z-index:${i+1};cursor:pointer"><span style="position:absolute;left:3px;top:1px;font-size:10px;background:rgba(0,0,0,.7);padding:0 4px;border-radius:4px;white-space:nowrap">${i+1}${c.type==='video'?'🎬':'🖼️'} ${r1(c.dur)}s</span><div data-h="${i}" style="position:absolute;right:0;top:0;bottom:0;width:12px;background:rgba(245,158,11,.9);cursor:ew-resize;touch-action:none"></div></div>`});
-  gTexts.forEach((t,i)=>{const a=Math.min(t.tIn,tot),b=Math.min(t.tOut,tot);h+=`<div data-gt="${i}" style="position:absolute;left:${a*pps}px;top:44px;width:${Math.max(18,(b-a)*pps)}px;height:16px;border-radius:5px;background:${selK==='g'&&i===selT?'#f59e0b':'#a16207'};color:#fff;font-size:10px;overflow:hidden;white-space:nowrap;padding:0 4px;cursor:pointer;z-index:30">🔤${esc(t.text.replace(/\n/g,' ').slice(0,10))}</div>`});
-  sfx.forEach((s,i)=>{h+=`<div data-sfx="${i}" style="position:absolute;left:${s.at*pps}px;top:64px;width:${Math.max(20,s.len*pps)}px;height:16px;border-radius:5px;background:#0369a1;color:#fff;font-size:10px;overflow:hidden;white-space:nowrap;padding:0 4px;cursor:grab;touch-action:none;z-index:30">🔊${esc(s.name.slice(0,8))}</div>`});
-  h+='<div id="ph" style="position:absolute;top:0;bottom:0;width:2px;background:#f87171;left:0;z-index:50;pointer-events:none"></div>';
+  ppsCur=pps;st.style.width=Math.max(ww,tot*pps+8)+'px';
+  const stepT=[1,2,5,10,15,30,60].find(x=>x*pps>=46)||60;let h=`<div data-ruler="1" style="position:absolute;left:0;top:0;right:0;height:16px;background:#2a2a2a;border-radius:4px;cursor:pointer;z-index:40;touch-action:none">`;
+  for(let t=0;t<=tot+.01;t+=stepT)h+=`<span style="position:absolute;left:${t*pps+2}px;top:1px;font-size:9px;color:#a3a3a3;pointer-events:none">${fmt(t)}</span><i style="position:absolute;left:${t*pps}px;top:10px;width:1px;height:6px;background:#777;pointer-events:none"></i>`;
+  h+='</div>';
+  clips.forEach((c,i)=>{h+=`<div data-clip="${i}" style="position:absolute;left:${L[i].s*pps}px;top:20px;width:${Math.max(24,c.dur*pps)}px;height:40px;border-radius:8px;overflow:hidden;border:2px solid ${i===sel?'#f59e0b':'#525252'};background:#333 ${c.th?`url('${c.th}') center/cover`:''};z-index:${i+1};cursor:pointer"><span style="position:absolute;left:3px;top:1px;font-size:10px;background:rgba(0,0,0,.7);padding:0 4px;border-radius:4px;white-space:nowrap">${i+1}${c.type==='video'?'🎬':'🖼️'} ${r1(c.dur)}s</span><div data-h="${i}" style="position:absolute;right:0;top:0;bottom:0;width:12px;background:rgba(245,158,11,.9);cursor:ew-resize;touch-action:none"></div></div>`});
+  gTexts.forEach((t,i)=>{const a=Math.min(t.tIn,tot),b=Math.min(t.tOut,tot);h+=`<div data-gt="${i}" style="position:absolute;left:${a*pps}px;top:64px;width:${Math.max(18,(b-a)*pps)}px;height:16px;border-radius:5px;background:${selK==='g'&&i===selT?'#f59e0b':'#a16207'};color:#fff;font-size:10px;overflow:hidden;white-space:nowrap;padding:0 4px;cursor:pointer;z-index:30">🔤${esc(t.text.replace(/\n/g,' ').slice(0,10))}</div>`});
+  sfx.forEach((s,i)=>{h+=`<div data-sfx="${i}" style="position:absolute;left:${s.at*pps}px;top:84px;width:${Math.max(20,s.len*pps)}px;height:16px;border-radius:5px;background:#0369a1;color:#fff;font-size:10px;overflow:hidden;white-space:nowrap;padding:0 4px;cursor:grab;touch-action:none;z-index:30">🔊${esc(s.name.slice(0,8))}</div>`});
+  h+=`<div id="ph" style="position:absolute;top:0;bottom:0;width:2px;background:#f87171;left:${(playing?0:startAt)*pps}px;z-index:50;pointer-events:none"></div>`;
   st.innerHTML=h;$('totalT').textContent=r1(total());
   document.querySelectorAll('.needClip').forEach(e=>e.classList.toggle('hidden',sel<0));document.querySelectorAll('.noClip').forEach(e=>e.classList.toggle('hidden',sel>=0))}
 const stp=$('strip');
+const xToT=e=>Math.max(0,Math.min(total(),(e.clientX-stp.getBoundingClientRect().left)/ppsCur));
+function updTm(){if(!playing)$('tm').textContent=startAt>0.05?'起點 '+fmt(startAt):''}
 stp.addEventListener('pointerdown',e=>{const t=e.target;let el;
+  if(t.closest('[data-ruler]')){const was=playing;if(was)stop();startAt=xToT(e);const ph=$('ph');if(ph)ph.style.left=startAt*ppsCur+'px';updTm();op={k:'ruler',was};stp.setPointerCapture(e.pointerId);e.preventDefault();return}
   if(el=t.closest('[data-h]')){const i=+el.dataset.h;stop();if(sel!==i){sel=i;selK='c';selT=clips[i].texts.length?0:-1;syncEditor();renderTexts();syncText()}
     op={k:'rs',i,x0:e.clientX,d0:clips[i].dur};ppsLock=ppsCur;stp.setPointerCapture(e.pointerId);e.preventDefault();return}
   if(el=t.closest('[data-sfx]')){const i=+el.dataset.sfx;stop();op={k:'sx',i,x0:e.clientX,a0:sfx[i].at};ppsLock=ppsCur;stp.setPointerCapture(e.pointerId);showTab(3);e.preventDefault();return}
   if(el=t.closest('[data-gt]')){selK='g';selT=+el.dataset.gt;showTab(2);stop();renderTexts();syncText();renderStrip();redraw();return}
   if(el=t.closest('[data-clip]'))pick(+el.dataset.clip)});
-stp.addEventListener('pointermove',e=>{if(!op)return;const dx=(e.clientX-op.x0)/ppsLock;
+stp.addEventListener('pointermove',e=>{if(!op)return;
+  if(op.k==='ruler'){startAt=xToT(e);const ph=$('ph');if(ph)ph.style.left=startAt*ppsCur+'px';updTm();return}
+  const dx=(e.clientX-op.x0)/ppsLock;
   if(op.k==='rs'){const c=clips[op.i];c.dur=Math.max(.5,Math.min(maxDur(c),r1(op.d0+dx)));if(op.i===sel){$('eDur').value=c.dur;labels(c)}}
   else{sfx[op.i].at=Math.max(0,Math.min(Math.max(0,total()-.2),r1(op.a0+dx)));sfxLabel(op.i);const sl=$('sl'+op.i+'atr');if(sl)sl.value=sfx[op.i].at}
   renderStrip()});
-const endOp=()=>{if(!op)return;op=null;ppsLock=0;renderStrip();setMusicRange();syncText();redraw()};
+const endOp=()=>{if(!op)return;if(op.k==='ruler'){const w=op.was;op=null;if(w)play();return}op=null;ppsLock=0;renderStrip();setMusicRange();syncText();redraw()};
 stp.addEventListener('pointerup',endOp);stp.addEventListener('pointercancel',endOp);
 
 function pick(i){stop();sel=i;if(selK==='c')selT=cur().texts.length?0:-1;refreshAll()}
@@ -254,19 +264,19 @@ function renderTexts(){const c=cur();
   const chip=(t,i,k)=>`<button class="chip ${selK===k&&i===selT?'on':''}" onclick="pickT('${k}',${i})">${esc((t.text.replace(/\n/g,' ')||'(空)').slice(0,8))}</button>`;
   $('tChips').innerHTML=(c?c.texts.map((t,i)=>chip(t,i,'c')).join(''):'')||'<span class="text-xs text-neutral-500">沒有</span>';
   $('gChips').innerHTML=gTexts.map((t,i)=>chip(t,i,'g')).join('')||'<span class="text-xs text-neutral-500">沒有</span>';
-  $('tEdit').classList.toggle('hidden',!curT());$('tKind').textContent=selK==='g'?'全片文字（跨片段）':'本片段文字'}
+  $('tEdit').classList.toggle('hidden',!curT());$('gSpan').classList.toggle('hidden',!(curT()&&selK==='g'));$('tKind').textContent=selK==='g'?'全片文字（跨片段）':'本片段文字'}
 function pickT(k,i){selK=k;selT=i;stop();renderTexts();syncText();renderStrip();redraw()}
 function syncText(){const t=curT();if(!t)return;const g=selK==='g',lim=g?Math.max(.5,total()):(cur()?cur().dur:1);
   $('eText').value=t.text;$('eFont').value=t.font;$('eColor').value=t.color;$('eSize').value=t.size;$('eTa').value=t.ta;$('eStroke').checked=t.stroke;$('eBg').checked=t.bg;
   $('eIn').max=lim;$('eOut').max=lim;$('eIn').value=Math.min(t.tIn,lim);$('eOut').value=Math.min(t.tOut,lim);
   $('lIn').textContent=g?'出現時間（全片）':'出現時間';$('lOut').textContent=g?'消失時間（全片）':'消失時間';
-  $('vSize').textContent=t.size;$('vIn').textContent=r1(t.tIn)+' 秒';$('vOut').textContent=t.tOut>=lim-.05?'到結尾':r1(t.tOut)+' 秒'}
+  $('vSize').textContent=t.size;$('vIn').textContent=r1(t.tIn)+' 秒';$('vOut').textContent=t.tOut>=lim-.05?'到結尾（'+r1(lim)+' 秒）':r1(t.tOut)+' 秒';$('gSpan').classList.toggle('hidden',!g)}
 function bindT(id,prop,conv,after){$(id).addEventListener('input',e=>{const t=curT();if(!t)return;
   t[prop]=conv(e.target.type==='checkbox'?e.target.checked:e.target.value);if(after)after(t);syncText();if(prop==='text')renderTexts();renderStrip();redraw()})}
 bindT('eText','text',idf);bindT('eFont','font',idf);bindT('eColor','color',idf);bindT('eSize','size',num);bindT('eTa','ta',idf);bindT('eStroke','stroke',idf);bindT('eBg','bg',idf);
 bindT('eIn','tIn',num);bindT('eOut','tOut',num,t=>{const lim=selK==='g'?total():cur().dur;if(t.tOut>=lim-.05)t.tOut=99});
 function addText(txt,o,k){const c=cur();if(!c)return;k=k||selK;
-  if(k==='g'){const L=tl()[sel];gTexts.push(newText(txt,Object.assign({y:Math.min(88,30+gTexts.length*14),tIn:r1(L.s),tOut:r1(L.e)>=total()-.05?99:r1(L.e)},o)));selK='g';selT=gTexts.length-1}
+  if(k==='g'){gTexts.push(newText(txt,Object.assign({y:Math.min(88,30+gTexts.length*14),tIn:0,tOut:99},o)));selK='g';selT=gTexts.length-1}
   else{c.texts.push(newText(txt,Object.assign({y:Math.min(88,30+c.texts.length*14)},o)));selK='c';selT=c.texts.length-1}
   renderTexts();syncText();renderStrip();redraw()}
 $('bAddT').onclick=()=>addText('新文字',null,'c');
@@ -275,6 +285,8 @@ const STK=['❤️','🎉','🎂','🌸','🙏','👍','😂','🌞','🌈','⭐
 $('stkRow').innerHTML=STK.map(e=>`<button type="button" data-e="${e}">${e}</button>`).join('');
 $('bStk').onclick=()=>$('stkRow').classList.toggle('hidden');
 $('stkRow').onclick=e=>{const b=e.target.closest('button');if(b)addText(b.dataset.e,{size:110,font:SANS,ta:'pop',y:50})};
+$('bSpanClip').onclick=()=>{const t=curT();if(!t||selK!=='g'||sel<0)return;const L=tl()[sel];t.tIn=r1(L.s);t.tOut=r1(L.e)>=total()-.05?99:r1(L.e);syncText();renderStrip();redraw()};
+$('bSpanAll').onclick=()=>{const t=curT();if(!t||selK!=='g')return;t.tIn=0;t.tOut=99;syncText();renderStrip();redraw()};
 $('bCenter').onclick=()=>{const t=curT();if(t){t.x=50;t.y=50;redraw()}};
 $('bDelT').onclick=()=>{if(selT<0)return;if(selK==='g'){gTexts.splice(selT,1);selT=gTexts.length?Math.min(selT,gTexts.length-1):-1;if(selT<0){selK='c';selT=cur()&&cur().texts.length?0:-1}}
   else{const c=cur();c.texts.splice(selT,1);selT=c.texts.length?Math.min(selT,c.texts.length-1):-1}
@@ -387,8 +399,8 @@ function redraw(){if(playing||exp)return;const c=cur();
 // ---------- 播放引擎 ----------
 const rTo=(cn,fn)=>{const old=ctx;ctx=cn.getContext('2d');fn();ctx=old};
 function setVol(i,f){const c=clips[i];if(exp&&c.g)c.g.gain.value=c.vol/100*f;else if(c.type==='video'&&c.el)c.el.volume=Math.max(0,Math.min(1,c.vol/100*f*gv))}
-function syncActive(act){clips.forEach((c,j)=>{const on=act.includes(j);
-  if(on&&!actSet.includes(j)&&c.type==='video'){if(!exp){c.el.muted=!c.keep}c.el.playbackRate=c.speed;c.el.currentTime=c.start;c.el.play().catch(()=>{})}
+function syncActive(act,e,L){clips.forEach((c,j)=>{const on=act.includes(j);
+  if(on&&!actSet.includes(j)&&c.type==='video'){if(!exp){c.el.muted=!c.keep}c.el.playbackRate=c.speed;c.el.currentTime=c.start+Math.max(0,e-L[j].s)*c.speed;c.el.play().catch(()=>{})}
   if(!on){if(c.g)c.g.gain.value=0;if(c.type==='video'&&actSet.includes(j))c.el.pause()}});actSet=act.slice()}
 function compose(a,b,e,L){const p=Math.min(1,Math.max(0,(e-L[b].s)/Math.max(.01,L[b].od))),k=p*p*(3-2*p),tr=clips[b].tr;
   rTo(oa,()=>drawClip(clips[a],e-L[a].s,a,false,true));rTo(ob,()=>drawClip(clips[b],e-L[b].s,b,false,true));
@@ -401,19 +413,20 @@ function compose(a,b,e,L){const p=Math.min(1,Math.max(0,(e-L[b].s)/Math.max(.01,
   else{ctx.drawImage(oa,0,0);ctx.globalAlpha=k;ctx.drawImage(ob,0,0);ctx.globalAlpha=1}}
 function frameAt(e){const L=tl(),n=clips.length;let act=[];
   L.forEach((x,i)=>{if(e>=x.s&&(e<x.e||i===n-1))act.push(i)});if(!act.length)act=[n-1];if(act.length>2)act=act.slice(-2);
-  syncActive(act);
+  syncActive(act,e,L);
   if(act.length===1){setVol(act[0],1);drawClip(clips[act[0]],Math.min(e-L[act[0]].s,clips[act[0]].dur),act[0],false)}
   else compose(act[0],act[1],e,L);
   drawG(e,false)}
-function musicPlay(){if(!mAud)return;clearInterval(ivs);mAud.volume=0;mAud.currentTime=+$('mStart').value;mAud.play().catch(()=>{})}
-function play(){if(playing||!clips.length)return;playing=true;actSet=[];const tot=total();T0=performance.now();musicPlay();
-  const ac=ensurePac();sfxSchedule(ac,ac.destination,ac.currentTime+.05,0);
-  const loop=()=>{if(!playing)return;let e=(performance.now()-T0)/1000;
-    if(e>=tot){T0=performance.now();e=0;musicPlay();sfxStop();sfxSchedule(ac,ac.destination,ac.currentTime+.05,0)}
-    gv=Math.min(1,(performance.now()-T0)/400);if(mAud)mAud.volume=$('mVol').value/100*gv;
+function musicPlay(off){if(!mAud)return;clearInterval(ivs);mAud.volume=0;mAud.currentTime=+$('mStart').value+(off||0);mAud.play().catch(()=>{})}
+function play(from){if(playing||!clips.length)return;const tot=total();if(typeof from==='number')startAt=from;if(startAt>=tot-.1)startAt=0;
+  playing=true;actSet=[];const off=startAt;T0=performance.now()-off*1000;PS=performance.now();musicPlay(off);
+  const ac=ensurePac();sfxSchedule(ac,ac.destination,ac.currentTime+.05,off);
+  const loop=()=>{if(!playing)return;const now=performance.now();let e=(now-T0)/1000;
+    if(e>=tot){clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});T0=now-startAt*1000;PS=now;e=startAt;actSet=[];musicPlay(startAt);sfxStop();sfxSchedule(ac,ac.destination,ac.currentTime+.05,startAt)}
+    gv=Math.min(1,(now-PS)/400);if(mAud)mAud.volume=$('mVol').value/100*gv;
     frameAt(e);$('tm').textContent=fmt(e)+' / '+fmt(tot);const ph=$('ph');if(ph)ph.style.left=e*ppsCur+'px';raf=requestAnimationFrame(loop)};loop()}
 function stop(){playing=false;gv=1;cancelAnimationFrame(raf);actSet=[];sfxStop();clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});
-  if(mAud&&!mAud.paused){const m=mAud;let v=m.volume;clearInterval(ivs);ivs=setInterval(()=>{v-=.12;if(v<=0){clearInterval(ivs);m.pause()}else m.volume=v},16)}$('tm').textContent='';redraw()}
+  if(mAud&&!mAud.paused){const m=mAud;let v=m.volume;clearInterval(ivs);ivs=setInterval(()=>{v-=.12;if(v<=0){clearInterval(ivs);m.pause()}else m.volume=v},16)}updTm();redraw()}
 
 // ---------- 音效軌 ----------
 function ensurePac(){if(!pac)pac=new (window.AudioContext||window.webkitAudioContext)();if(pac.state==='suspended')pac.resume();return pac}
@@ -506,7 +519,7 @@ async function makeVideo(){
 // ---------- 事件 ----------
 $('fVid').onchange=e=>{addFiles('video',[...e.target.files]);e.target.value=''};
 $('fImg').onchange=e=>{addFiles('image',[...e.target.files]);e.target.value=''};
-$('bPlay').onclick=play;$('bStop').onclick=stop;$('bMake').onclick=makeVideo;
+$('bPlay').onclick=()=>play();$('bPlayHere').onclick=()=>{if(sel<0)return;const L=tl()[sel];stop();play(L.s)};$('bStop').onclick=stop;$('bMake').onclick=makeVideo;
 document.querySelectorAll('.asp').forEach(b=>b.onclick=()=>{asp=b.dataset.a;document.querySelectorAll('.asp').forEach(x=>x.classList.toggle('on',x===b));stop();setSize()});
 window.addEventListener('resize',()=>renderStrip());
 setSize();renderStrip();renderTexts();renderSfx();
