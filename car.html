@@ -1,153 +1,152 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>炫彩特斯拉飛越框框巡邏展示</title>
+  <title>Tesla Aerobatic Flight & Motion Playground</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
     
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #0b0f17;
+      background-color: #080c14;
       color: #f8fafc;
       overflow-x: hidden;
     }
 
-    /* 隱藏橫向滾動條但保持滾動功能 */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* 按鈕脈衝發光邊框特效 */
     .glow-btn {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       color: #f8fafc;
       border: 2px solid #38bdf8;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4), inset 0 0 8px rgba(56, 189, 248, 0.2);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
       transition: all 0.3s ease;
       position: relative;
       cursor: pointer;
     }
 
     .glow-btn:hover {
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.8), inset 0 0 12px rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.8);
       border-color: #7dd3fc;
     }
 
-    /* 車身精靈容器：提高 z-index 確保特技飛躍時可疊在頂部文字與標題上方 */
+    /* 特斯拉容器：維持適當大小並高於標題 (z-50) */
     #petContainer {
       position: absolute;
       top: 0;
       left: 0;
-      width: 48px;
-      height: 24px;
+      width: 54px;
+      height: 28px;
       pointer-events: none;
-      z-index: 100;
+      z-index: 50;
       will-change: transform;
     }
 
-    #petSvg {
-      transition: transform 0.1s linear;
+    /* 氣體噴霧粒子樣式 */
+    .thruster-particle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 45;
+      animation: particle-fade 0.6s linear forwards;
+    }
+
+    @keyframes particle-fade {
+      0% { opacity: 0.9; transform: scale(1); }
+      100% { opacity: 0; transform: scale(2.8) translateY(12px); }
+    }
+
+    /* 自訂 Range 樣式 */
+    input[type="range"] {
+      height: 6px;
+      border-radius: 4px;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between p-4 sm:p-8">
+<body class="min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
 
-  <!-- 頂部頁首區塊：將 z-index 設為 z-0，並縮小下方邊距 (mb-0)，讓字體靠按鈕更近，並可被特斯拉 (z-100) 在視覺上層劃過 -->
-  <header class="text-center mt-2 mb-0 relative z-0">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-2">
+  <!-- 頂部頁首區域：維持原有排版距離，z-index 設為 10，讓特斯拉 (z-50) 半透明穿透在其上方 -->
+  <header id="headerSection" class="text-center mt-2 mb-0 relative z-10 transition-opacity duration-300">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-2 shadow-lg">
       <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-      SpaceX / Tesla 特技飛越模擬系統
+      Tesla Aerobatic Motion Playground & Configurator
     </div>
-    <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white mb-1">
-      炫彩特斯拉 <span class="bg-gradient-to-r from-cyan-400 to-pink-500 bg-clip-text text-transparent">飛越黃河</span> 巡邏系統
+    <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white mb-1 select-none">
+      炫彩特斯拉 <span class="bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-500 bg-clip-text text-transparent">飛越黃河</span> 展示特技
     </h1>
-    <p class="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
-      特斯拉可在已勾選的按鈕間進行 360° 空翻慢動作飛越與上緣極速滑行。
+    <p class="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto select-none">
+      穿梭在標題視覺圖層上方，支援半透明過境、噴霧氣體控制與全參數備份。
     </p>
   </header>
 
-  <!-- 主舞台區域：取消 overflow 限制，讓特斯拉可自由飛躍重疊至上方文字 -->
-  <main class="w-full max-w-5xl mx-auto my-auto relative z-20 overflow-visible pt-2">
-    <div id="stageContainer" class="relative w-full flex items-center justify-start sm:justify-center gap-3 sm:gap-4 overflow-visible pb-8 pt-10 px-4 border border-slate-800/80 rounded-3xl bg-slate-950/40 backdrop-blur-sm">
+  <!-- 主舞台區域：按鈕列 -->
+  <main class="w-full max-w-5xl mx-auto my-auto relative z-20 overflow-visible pt-4 pb-2">
+    <div id="stageContainer" class="relative w-full flex items-center justify-start sm:justify-center gap-3 sm:gap-4 overflow-visible pb-8 pt-10 px-4 border border-slate-800/80 rounded-3xl bg-slate-950/50 backdrop-blur-md shadow-2xl">
       
-      <!-- 5 個指定發光按鈕 (並排 single-row)，包含獨立核取方塊 -->
-      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
-        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="0" title="勾選以允許特斯拉跳躍至此按鈕">
+      <!-- 5 個指定發光按鈕 -->
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700/60">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="0">
         <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
           <span>🎬 GIF 動畫</span>
-          <span class="bg-red-500 text-white text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold animate-pulse">新功能</span>
+          <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold animate-pulse">新功能</span>
         </button>
       </div>
 
-      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
-        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="1" title="勾選以允許特斯拉跳躍至此按鈕">
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700/60">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="1">
         <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
           <span>🎵 加音樂</span>
-          <span class="bg-red-500 text-white text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold">新</span>
+          <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">新</span>
         </button>
       </div>
 
-      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
-        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="2" title="勾選以允許特斯拉跳躍至此按鈕">
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700/60">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="2">
         <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
           <span>🎨 標題樣式</span>
         </button>
       </div>
 
-      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
-        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="3" title="勾選以允許特斯拉跳躍至此按鈕">
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700/60">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="3">
         <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
           <span>✨ 特效相框</span>
         </button>
       </div>
 
-      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-700/50">
-        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="4" title="勾選以允許特斯拉跳躍至此按鈕">
+      <div class="glow-btn-wrapper flex items-center gap-1.5 flex-shrink-0 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-700/60">
+        <input type="checkbox" class="btn-enable-checkbox w-4 h-4 accent-cyan-400 cursor-pointer ml-1" checked data-index="4">
         <button class="glow-btn px-3 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5">
           <span>🎲 隨機設定</span>
-          <span class="bg-amber-500 text-slate-950 text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full font-bold">HOT</span>
+          <span class="bg-amber-500 text-slate-950 text-[10px] px-1.5 py-0.5 rounded-full font-bold">HOT</span>
         </button>
       </div>
 
-      <!-- 特斯拉 Cyber-Car SVG 精靈 -->
+      <!-- 特斯拉 Cyber-Car 精靈 -->
       <div id="petContainer">
-        <svg id="petSvg" viewBox="0 0 100 50" class="w-full h-full overflow-visible">
+        <svg id="petSvg" viewBox="0 0 100 50" class="w-full h-full overflow-visible transition-opacity duration-300">
           <g id="teslaBody">
-            <!-- 跑車輪廓底部陰影/發光底盤 -->
             <ellipse cx="50" cy="42" rx="42" ry="5" fill="#38bdf8" opacity="0.6" id="underglow"/>
-
-            <!-- 火箭後推進與底部 RCS 輔助噴嘴光芒 -->
-            <path id="thrusterGlow" d="M 0 35 L -15 32 L -15 38 Z" fill="#38bdf8" opacity="0" class="transition-opacity"/>
-            <ellipse id="bottomRcsGlow" cx="50" cy="46" rx="20" ry="4" fill="#00f0ff" opacity="0"/>
+            <path id="thrusterGlow" d="M 0 35 L -18 30 L -18 40 Z" fill="#38bdf8" opacity="0"/>
+            <ellipse id="bottomRcsGlow" cx="50" cy="46" rx="22" ry="5" fill="#00f0ff" opacity="0"/>
             
-            <!-- 特斯拉 Cyber 車身主體 -->
             <path id="carShell" d="M 8 36 L 22 22 L 48 14 L 80 24 L 94 36 Z" fill="#ec4899" stroke="#f472b6" stroke-width="2"/>
-            
-            <!-- 車窗/玻璃頂蓋 -->
             <polygon points="26,22 46,16 74,24 55,24" fill="#0f172a" opacity="0.85"/>
             <polygon points="26,22 46,16 74,24 55,24" stroke="#38bdf8" stroke-width="1" fill="none"/>
 
-            <!-- 醒目的特斯拉標誌 Tesla "T" Logo -->
-            <g transform="translate(62, 27) scale(0.65)">
-              <path d="M 0 0 L 10 0 L 5 2 Z M 3 2 L 7 2 L 7 10 L 5 12 L 3 10 Z" fill="#ffffff" filter="drop-shadow(0 0 2px #38bdf8)"/>
+            <!-- 特斯拉 "T" Logo -->
+            <g transform="translate(62, 26) scale(0.7)">
+              <path d="M 0 0 L 10 0 L 5 2 Z M 3 2 L 7 2 L 7 10 L 5 12 L 3 10 Z" fill="#ffffff" filter="drop-shadow(0 0 3px #38bdf8)"/>
             </g>
             
-            <!-- 車前與車尾 LED 燈條 -->
-            <line x1="90" y1="34" x2="94" y2="36" stroke="#22d3ee" stroke-width="3" stroke-linecap="round" id="headLight"/>
+            <line x1="90" y1="34" x2="94" y2="36" stroke="#22d3ee" stroke-width="3" stroke-linecap="round"/>
             <line x1="8" y1="35" x2="14" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
 
-            <!-- 前後輪圈 -->
             <circle cx="26" cy="38" r="7" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
-            <circle cx="26" cy="38" r="3" fill="#38bdf8" id="wheelFront"/>
+            <circle cx="26" cy="38" r="3" fill="#38bdf8"/>
             <circle cx="74" cy="38" r="7" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
-            <circle cx="74" cy="38" r="3" fill="#38bdf8" id="wheelBack"/>
+            <circle cx="74" cy="38" r="3" fill="#38bdf8"/>
           </g>
         </svg>
       </div>
@@ -155,23 +154,115 @@
     </div>
   </main>
 
-  <!-- 底部即時控制台面板 -->
-  <footer class="max-w-xl mx-auto w-full bg-slate-900/90 border border-slate-800 p-4 rounded-2xl backdrop-blur-md shadow-2xl my-6">
-    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3 w-full sm:w-auto">
-        <span class="text-xs font-semibold text-slate-300 whitespace-nowrap">⚡ 滑行速度</span>
-        <input type="range" id="speedInput" min="0.1" max="0.8" step="0.05" value="0.35" class="w-full sm:w-32 accent-cyan-400 cursor-pointer">
+  <!-- 全功能超大區間參數調校面板 (Playground Control Panel) -->
+  <footer class="max-w-4xl mx-auto w-full bg-slate-900/95 border border-slate-800 p-4 sm:p-5 rounded-3xl backdrop-blur-xl shadow-2xl my-2 text-xs">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-bold text-cyan-400">🎛️ 特斯拉展演調參 Playground</span>
+        <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.0 Advanced</span>
       </div>
-      <button id="manualHopBtn" class="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
-        🚀 立即發射「飛越黃河」
-      </button>
+      <div class="flex items-center gap-2">
+        <button id="manualTriggerBtn" class="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg shadow-md transition-all active:scale-95">
+          🚀 觸發飛行展演
+        </button>
+        <button id="exportJsonBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30 font-bold rounded-lg transition-all active:scale-95">
+          📋 複製 JSON 設定檔
+        </button>
+      </div>
+    </div>
+
+    <!-- 參數調節控制滑桿矩陣 -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-3">
+      <!-- 飛行高度 (Arc Height) -->
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-300">🚀 飛躍最大高度 (Arc Height)</span>
+          <span id="val_arcHeight" class="text-cyan-400 font-mono">140px</span>
+        </div>
+        <input type="range" id="param_arcHeight" min="50" max="300" step="5" value="140" class="w-full accent-cyan-400 bg-slate-800">
+      </div>
+
+      <!-- 飛行總時間 (Flight Duration) -->
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-300">⏱️ 飛行總耗時 (Duration)</span>
+          <span id="val_flightDuration" class="text-cyan-400 font-mono">2.5s</span>
+        </div>
+        <input type="range" id="param_flightDuration" min="1.0" max="6.0" step="0.1" value="2.5" class="w-full accent-cyan-400 bg-slate-800">
+      </div>
+
+      <!-- 空中翻轉圈數 (Rotation Turns) -->
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-300">🌀 空中旋轉圈數 (Spins)</span>
+          <span id="val_spinCount" class="text-cyan-400 font-mono">1 圈</span>
+        </div>
+        <input type="range" id="param_spinCount" min="0" max="4" step="1" value="1" class="w-full accent-cyan-400 bg-slate-800">
+      </div>
+
+      <!-- 噴霧密度 (Particle Density) -->
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-300">💨 噴霧氣體密度 (Smoke Rate)</span>
+          <span id="val_smokeDensity" class="text-cyan-400 font-mono">中等</span>
+        </div>
+        <input type="range" id="param_smokeDensity" min="0" max="10" step="1" value="5" class="w-full accent-cyan-400 bg-slate-800">
+      </div>
+
+      <!-- 邊框滑行速度 (Slide Speed) -->
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-300">🏎️ 邊框滑行速度 (Glide Speed)</span>
+          <span id="val_slideSpeed" class="text-cyan-400 font-mono">0.35</span>
+        </div>
+        <input type="range" id="param_slideSpeed" min="0.1" max="1.0" step="0.05" value="0.35" class="w-full accent-cyan-400 bg-slate-800">
+      </div>
+
+      <!-- 飛越透明度 (Flight Opacity) -->
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="text-slate-300">✨ 穿過文字透明度 (Opacity)</span>
+          <span id="val_flightOpacity" class="text-cyan-400 font-mono">0.85</span>
+        </div>
+        <input type="range" id="param_flightOpacity" min="0.3" max="1.0" step="0.05" value="0.85" class="w-full accent-cyan-400 bg-slate-800">
+      </div>
+
+      <!-- 氣體噴霧顏色 (RGB Mode) -->
+      <div class="sm:col-span-2 flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+        <span class="text-slate-300 font-medium">🌈 噴霧顏色模式 (Thruster Color Mode)</span>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="radio" name="colorMode" value="random" checked class="accent-cyan-400">
+            <span class="text-slate-300">飛越時隨機變色</span>
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input type="radio" name="colorMode" value="custom" class="accent-cyan-400">
+            <span class="text-slate-300">固定顏色:</span>
+          </label>
+          <input type="color" id="param_customColor" value="#00f0ff" class="w-6 h-6 rounded bg-transparent cursor-pointer border-0">
+        </div>
+      </div>
+
+      <!-- 飛越軌跡模式開關 -->
+      <div class="flex items-center justify-between bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+        <span class="text-slate-300 font-medium">🌌 飛越軌跡模式 (Path Mode)</span>
+        <select id="param_pathMode" class="bg-slate-800 text-cyan-400 rounded p-1 border border-slate-700 cursor-pointer">
+          <option value="random">A/B 隨機交替</option>
+          <option value="parabola">A: 定點拋物線</option>
+          <option value="wave">B: 多重 8 字波浪</option>
+        </select>
+      </div>
     </div>
   </footer>
 
-  <!-- 動態邏輯腳本 -->
+  <!-- 提示訊息 Modal -->
+  <div id="toast" class="fixed top-6 right-6 bg-cyan-500 text-slate-950 px-4 py-2 rounded-xl font-bold text-xs shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-50">
+    📋 JSON 設定檔已成功複製到剪貼簿！
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // DOM 元素引用
+      // DOM 引用的元素
       const stageContainer = document.getElementById('stageContainer');
       const buttons = Array.from(stageContainer.querySelectorAll('.glow-btn'));
       const checkboxes = Array.from(stageContainer.querySelectorAll('.btn-enable-checkbox'));
@@ -181,8 +272,22 @@
       const underglow = document.getElementById('underglow');
       const thrusterGlow = document.getElementById('thrusterGlow');
       const bottomRcsGlow = document.getElementById('bottomRcsGlow');
+      const toast = document.getElementById('toast');
 
-      // 全域狀態變數宣告
+      // 可供調整與導出的 JSON 參數配置
+      const config = {
+        arcHeight: 140,         // px
+        flightDuration: 2.5,     // 秒
+        spinCount: 1,            // 圈數
+        smokeDensity: 5,         // 0~10
+        slideSpeed: 0.35,        // 滑行速度
+        flightOpacity: 0.85,     // 穿過文字時的透明度
+        colorMode: 'random',     // 'random' 或 'custom'
+        customColor: '#00f0ff',
+        pathMode: 'random'       // 'random', 'parabola', 'wave'
+      };
+
+      // 執行期動態變數
       let currentBtnIndex = 0;
       let currentX = 0;
       let currentY = 0;
@@ -190,18 +295,18 @@
       let targetRatio = 0.5;
       let facing = 1;
 
-      let slideSpeed = 0.35; // 邊框滑行速度
       let isHopping = false;
-
       let hopProgress = 0;
       let hopStartIdx = 0;
       let hopTargetIdx = 0;
-      let hopDuration = 2200; // 慢動作空翻跳躍持續時間 (ms)
+      let currentPathType = 'parabola'; // 當前活化的軌跡模式
+      let activeGlowColor = '#00f0ff';
 
       let lastTimestamp = 0;
       let hopTimer = null;
+      let particleTimer = 0;
 
-      // 計算特斯拉緊貼按鈕邊框時的精確相對座標
+      // 取得緊貼按鈕上緣的相對座標
       function getPetPosOnButton(btnIdx, ratio) {
         const btn = buttons[btnIdx];
         const btnRect = btn.getBoundingClientRect();
@@ -210,24 +315,19 @@
         const relativeLeft = btnRect.left - stageRect.left;
         const relativeTop = btnRect.top - stageRect.top;
 
-        const carWidth = 48;
+        const carWidth = 54;
         const x = relativeLeft + (btnRect.width - carWidth) * ratio;
-        // 緊貼上緣定位
-        const y = relativeTop - 18;
+        const y = relativeTop - 20; // 精確緊貼上緣
 
         return { x, y };
       }
 
-      // 取得隨機已勾選的按鈕索引
       function getRandomButtonIndex() {
         const enabledIndices = checkboxes
           .map((cb, idx) => cb.checked ? idx : -1)
           .filter(idx => idx !== -1);
 
-        if (enabledIndices.length === 0) {
-          return currentBtnIndex;
-        }
-
+        if (enabledIndices.length === 0) return currentBtnIndex;
         const candidates = enabledIndices.filter(idx => idx !== currentBtnIndex);
         if (candidates.length > 0) {
           return candidates[Math.floor(Math.random() * candidates.length)];
@@ -235,27 +335,49 @@
         return enabledIndices[0];
       }
 
-      // 為特斯拉隨機塗裝包膜顏色與底盤發光
       function applyRandomPaint() {
         const paints = [
-          { shell: '#ec4899', stroke: '#f472b6', glow: '#f472b6' }, // 霓虹粉
-          { shell: '#06b6d4', stroke: '#67e8f9', glow: '#38bdf8' }, // 電光藍
-          { shell: '#eab308', stroke: '#fde047', glow: '#facc15' }, // 炫目金
-          { shell: '#84cc16', stroke: '#bef264', glow: '#a3e635' }, // 毒液綠
-          { shell: '#a855f7', stroke: '#d8b4fe', glow: '#c084fc' }, // 魅影紫
-          { shell: '#64748b', stroke: '#cbd5e1', glow: '#94a3b8' }  // 鈦銀灰
+          { shell: '#ec4899', stroke: '#f472b6', glow: '#f472b6' },
+          { shell: '#06b6d4', stroke: '#67e8f9', glow: '#38bdf8' },
+          { shell: '#eab308', stroke: '#fde047', glow: '#facc15' },
+          { shell: '#84cc16', stroke: '#bef264', glow: '#a3e635' },
+          { shell: '#a855f7', stroke: '#d8b4fe', glow: '#c084fc' }
         ];
         const pick = paints[Math.floor(Math.random() * paints.length)];
         if (carShell) {
           carShell.setAttribute('fill', pick.shell);
           carShell.setAttribute('stroke', pick.stroke);
         }
-        if (underglow) {
-          underglow.setAttribute('fill', pick.glow);
+        
+        // 噴霧與底盤光輝顏色處理
+        if (config.colorMode === 'custom') {
+          activeGlowColor = config.customColor;
+        } else {
+          activeGlowColor = pick.glow;
         }
+
+        if (underglow) underglow.setAttribute('fill', activeGlowColor);
+        if (thrusterGlow) thrusterGlow.setAttribute('fill', activeGlowColor);
+        if (bottomRcsGlow) bottomRcsGlow.setAttribute('fill', activeGlowColor);
       }
 
-      // 初始化特斯拉與啟動繪圈 Loop
+      // 生成粒子噴霧動畫
+      function spawnParticle(x, y) {
+        if (config.smokeDensity === 0) return;
+        const p = document.createElement('div');
+        p.className = 'thruster-particle';
+        const size = Math.random() * 8 + 6;
+        p.style.width = `${size}px`;
+        p.style.height = `${size}px`;
+        p.style.backgroundColor = activeGlowColor;
+        p.style.boxShadow = `0 0 10px ${activeGlowColor}`;
+        p.style.left = `${x + 20}px`;
+        p.style.top = `${y + 20}px`;
+        stageContainer.appendChild(p);
+
+        setTimeout(() => p.remove(), 600);
+      }
+
       function initPet() {
         applyRandomPaint();
         currentBtnIndex = getRandomButtonIndex();
@@ -268,7 +390,6 @@
         scheduleNextHop();
       }
 
-      // 跳躍計時排程
       function scheduleNextHop() {
         if (hopTimer) clearTimeout(hopTimer);
         const nextTime = Math.random() * 3000 + 3500;
@@ -283,7 +404,6 @@
         }, nextTime);
       }
 
-      // 開啟 360° 慢動作「飛越黃河」特技跳躍
       function startHop(targetIdx) {
         isHopping = true;
         hopProgress = 0;
@@ -292,22 +412,40 @@
 
         applyRandomPaint();
 
+        // 判斷軌跡模式 (A: 定點拋物線, B: 多重 8 字波浪)
+        if (config.pathMode === 'random') {
+          currentPathType = Math.random() > 0.5 ? 'parabola' : 'wave';
+        } else {
+          currentPathType = config.pathMode;
+        }
+
         const startPos = getPetPosOnButton(hopStartIdx, currentRatio);
         const endPos = getPetPosOnButton(hopTargetIdx, 0.5);
         facing = endPos.x >= startPos.x ? 1 : -1;
 
         if (thrusterGlow) thrusterGlow.setAttribute('opacity', '0.9');
         if (bottomRcsGlow) bottomRcsGlow.setAttribute('opacity', '0.8');
+
+        // 套用半透明過境 opacity
+        petSvg.style.opacity = config.flightOpacity;
       }
 
-      // 主動畫迴圈
       function updateLoop(timestamp) {
         const delta = timestamp - lastTimestamp || 16.66;
         lastTimestamp = timestamp;
 
         if (isHopping) {
-          // 慢動作 360° 空翻飛越處理
-          hopProgress += delta / hopDuration;
+          const durationMs = config.flightDuration * 1000;
+          hopProgress += delta / durationMs;
+
+          // 噴霧粒子生成頻率控制
+          particleTimer += delta;
+          const spawnInterval = Math.max(20, 150 - config.smokeDensity * 12);
+          if (particleTimer > spawnInterval) {
+            spawnParticle(currentX, currentY);
+            particleTimer = 0;
+          }
+
           if (hopProgress >= 1) {
             hopProgress = 1;
             isHopping = false;
@@ -317,71 +455,16 @@
 
             if (thrusterGlow) thrusterGlow.setAttribute('opacity', '0');
             if (bottomRcsGlow) bottomRcsGlow.setAttribute('opacity', '0');
+            petSvg.style.opacity = '1.0';
             petSvg.style.transform = `scaleX(${facing})`;
           } else {
             const startPos = getPetPosOnButton(hopStartIdx, currentRatio);
             const endPos = getPetPosOnButton(hopTargetIdx, 0.5);
 
+            // 線性水平移動
             currentX = startPos.x + (endPos.x - startPos.x) * hopProgress;
-            // 拋物線高度升至 120px，向上跨越重疊至標題文字區域
-            const arc = Math.sin(hopProgress * Math.PI) * 120;
-            currentY = startPos.y + (endPos.y - startPos.y) * hopProgress - arc;
 
-            // 360° 特技空翻旋轉
-            const spin = hopProgress * 360 * facing;
-            petSvg.style.transform = `scaleX(${facing}) rotate(${spin}deg)`;
-          }
-        } else {
-          // 在按鈕頂端巡邏滑行
-          const pos = getPetPosOnButton(currentBtnIndex, currentRatio);
-          currentX = pos.x;
-          currentY = pos.y;
-
-          if (Math.abs(targetRatio - currentRatio) > 0.01) {
-            const dir = targetRatio > currentRatio ? 1 : -1;
-            facing = dir;
-            currentRatio += dir * (slideSpeed * (delta / 1000));
-            petSvg.style.transform = `scaleX(${facing})`;
-          } else {
-            targetRatio = Math.random();
-          }
-        }
-
-        pet.style.transform = `translate(${currentX}px, ${currentY}px)`;
-        requestAnimationFrame(updateLoop);
-      }
-
-      // 控制面板與 Checkbox 事件
-      const speedInput = document.getElementById('speedInput');
-      if (speedInput) {
-        speedInput.addEventListener('input', (e) => {
-          slideSpeed = parseFloat(e.target.value);
-        });
-      }
-
-      const manualHopBtn = document.getElementById('manualHopBtn');
-      if (manualHopBtn) {
-        manualHopBtn.addEventListener('click', () => {
-          if (!isHopping) {
-            const nextIdx = getRandomButtonIndex();
-            startHop(nextIdx);
-          }
-        });
-      }
-
-      // 視窗調整大小時更新絕對座標
-      window.addEventListener('resize', () => {
-        if (!isHopping) {
-          const pos = getPetPosOnButton(currentBtnIndex, currentRatio);
-          currentX = pos.x;
-          currentY = pos.y;
-          pet.style.transform = `translate(${currentX}px, ${currentY}px)`;
-        }
-      });
-
-      // 啟動專案
-      initPet();
-    });
-  </script>
-</body>
-</html>
+            // 計算垂直高度 trajectory
+            let arc = 0;
+            if (currentPathType === 'wave') {
+              /
