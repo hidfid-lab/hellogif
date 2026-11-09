@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>頂端橫向隨機跑動小動物按鈕展示</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0d0f17;
+      color: #e2e8f0;
+    }
+
+    /* 閃爍 glowing 邊框動畫 */
+    .glow-button {
+      position: relative;
+      background: rgba(23, 27, 44, 0.85);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .glow-button::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 9999px;
+      padding: 2px;
+      background: linear-gradient(135deg, #f59e0b, #ef4444, #8b5cf6, #3b82f6);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.7;
+      animation: pulseGlow 2.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        opacity: 0.4;
+        filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
+      }
+      100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.8));
+      }
+    }
+
+    .glow-button:hover::before {
+      opacity: 1;
+      filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.9));
+    }
+
+    /* 小動物與躍動動畫 */
+    .pet-avatar {
+      position: absolute;
+      pointer-events: none;
+      z-index: 50;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+      transition: transform 0.05s linear;
+    }
+
+    /* 理毛動態 */
+    @keyframes groomWiggle {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      25% { transform: rotate(-8deg) translateY(1px); }
+      75% { transform: rotate(8deg) translateY(-1px); }
+    }
+    .pet-grooming #petSvg {
+      animation: groomWiggle 0.4s ease-in-out infinite alternate;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-4 md:p-8 select-none">
+
+  <!-- Header -->
+  <header class="text-center my-6 max-w-xl">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-semibold mb-3">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> 隨機滑行 & 理毛休息
+    </div>
+    <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">按鈕上緣隨機巡邏</h1>
+    <p class="text-slate-400 text-sm mt-2">小貓咪會在邊框上隨機滑行、隨機跳躍至任一按鈕，偶爾還會停下來整理毛髮！</p>
+  </header>
+
+  <!-- Interactive Stage Container -->
+  <main class="w-full max-w-4xl relative flex flex-col items-center justify-center my-auto min-h-[320px]">
+    
+    <!-- Stage Wrapper with Relative Position for precise relative alignment -->
+    <div id="stageContainer" class="relative w-full py-8">
+      
+      <!-- Floating Pet Container inside Relative Stage -->
+      <div id="petContainer" class="pet-avatar absolute top-0 left-0 w-8 h-8 flex items-center justify-center transition-transform duration-75" style="display: none; top: 0; left: 0;">
+        <!-- Cute animated SVG Kitty Sprite -->
+        <svg id="petSvg" class="w-8 h-8 text-amber-300" viewBox="0 0 64 64" fill="currentColor">
+          <!-- Ears -->
+          <polygon points="12,18 22,6 26,24" fill="#f59e0b" />
+          <polygon points="52,18 42,6 38,24" fill="#f59e0b" />
+          <polygon points="15,17 21,9 24,21" fill="#fef3c7" />
+          <polygon points="49,17 43,9 40,21" fill="#fef3c7" />
+          <!-- Head / Body -->
+          <ellipse cx="32" cy="34" rx="20" ry="16" fill="#fbbf24" />
+          <!-- Cheeks -->
+          <circle cx="20" cy="38" r="4" fill="#ef4444" opacity="0.6"/>
+          <circle cx="44" cy="38" r="4" fill="#ef4444" opacity="0.6"/>
+          <!-- Eyes -->
+          <circle cx="24" cy="32" r="3" fill="#1e293b"/>
+          <circle cx="40" cy="32" r="3" fill="#1e293b"/>
+          <circle cx="25" cy="31" r="1" fill="#ffffff"/>
+          <circle cx="41" cy="31" r="1" fill="#ffffff"/>
+          <!-- Snout / Nose -->
+          <polygon points="30,36 34,36 32,38" fill="#ef4444" />
+          <!-- Paws (Animation simulation) -->
+          <ellipse id="pawLeft" cx="22" cy="49" rx="4" ry="3" fill="#fef3c7" />
+          <ellipse id="pawRight" cx="42" cy="49" rx="4" ry="3" fill="#fef3c7" />
+          <!-- Tail -->
+          <path d="M 50 36 Q 60 28 58 18" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+
+      <!-- The 5 Action Buttons Row -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 md:gap-6 w-full px-2" id="buttonsGrid">
+        
+        <!-- Button 1 -->
+        <div class="relative group">
+          <button class="glow-button btn-target w-full py-3.5 px-4 rounded-full flex items-center justify-center gap-2 text-sm font-semibold text-white shadow-lg active:scale-95">
+            <span>🎞️ GIF 動畫</span>
+            <span class="bg-rose-500 text-[10px] text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow">新功能</span>
+          </button>
+        </div>
+
+        <!-- Button 2 -->
+        <div class="relative group">
+          <button class="glow-button btn-target w-full py-3.5 px-4 rounded-full flex items-center justify-center gap-2 text-sm font-semibold text-white shadow-lg active:scale-95">
+            <span>🎵 加音樂</span>
+            <span class="bg-amber-500 text-[10px] text-white px-1.5 py-0.5 rounded-full font-bold shadow">HOT</span>
+          </button>
+        </div>
+
+        <!-- Button 3 -->
+        <div class="relative group">
+          <button class="glow-button btn-target w-full py-3.5 px-4 rounded-full flex items-center justify-center gap-2 text-sm font-semibold text-white shadow-lg active:scale-95">
+            <span>🎲 隨機設定</span>
+          </button>
+        </div>
+
+        <!-- Button 4 -->
+        <div class="relative group">
+          <button class="glow-button btn-target w-full py-3.5 px-4 rounded-full flex items-center justify-center gap-2 text-sm font-semibold text-white shadow-lg active:scale-95">
+            <span>🎨 標題風格</span>
+          </button>
+        </div>
+
+        <!-- Button 5 -->
+        <div class="relative group">
+          <button class="glow-button btn-target w-full py-3.5 px-4 rounded-full flex items-center justify-center gap-2 text-sm font-semibold text-white shadow-lg active:scale-95">
+            <span>✨ 特效相框</span>
+            <span class="bg-indigo-500 text-[10px] text-white px-1.5 py-0.5 rounded-full font-bold shadow">PRO</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Status Toast Notification -->
+    <div id="statusToast" class="mt-8 text-xs text-slate-400 bg-slate-800/60 border border-slate-700/50 px-4 py-2 rounded-full flex items-center gap-2 shadow-inner">
+      <i class="fa-solid fa-location-dot text-amber-400"></i>
+      <span>小動物目前巡邏中：<strong id="currentLocationText" class="text-amber-300">準備中...</strong></span>
+    </div>
+
+  </main>
+
+  <!-- Control Dashboard -->
+  <footer class="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-2xl p-4 md:p-5 backdrop-blur-md shadow-2xl space-y-4 my-4">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <h3 class="text-sm font-semibold text-slate-200 flex items-center gap-2">
+        <i class="fa-solid fa-sliders text-indigo-400"></i> 控制面板
+      </h3>
+      <button id="btnManualHop" class="px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-medium rounded-lg transition-all flex items-center gap-1.5 shadow">
+        <i class="fa-solid fa-bounce fa-bolt"></i> 手動換按鈕
+      </button>
+    </div>
+
+    <!-- Controls -->
+    <div class="space-y-3">
+      <!-- Speed Slider -->
+      <div>
+        <div class="flex justify-between text-xs text-slate-400 mb-1">
+          <span>跑步速度</span>
+          <span id="speedValueText" class="text-slate-200 font-mono">1.0x</span>
+        </div>
+        <input type="range" id="speedSlider" min="0.3" max="3.0" step="0.1" value="1.0" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+      </div>
+
+      <!-- Hop Interval Slider -->
+      <div>
+        <div class="flex justify-between text-xs text-slate-400 mb-1">
+          <span>自動更換按鈕頻率</span>
+          <span id="intervalValueText" class="text-slate-200 font-mono">3.5 秒</span>
+        </div>
+        <input type="range" id="intervalSlider" min="1.5" max="8.0" step="0.5" value="3.5" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pet = document.getElementById('petContainer');
+      const petSvg = document.getElementById('petSvg');
+      const pawLeft = document.getElementById('pawLeft');
+      const pawRight = document.getElementById('pawRight');
+      const buttons = Array.from(document.querySelectorAll('.btn-target'));
+      const stageContainer = document.getElementById('stageContainer');
+      const currentLocationText = document.getElementById('currentLocationText');
+      const btnManualHop = document.getElementById('btnManualHop');
+      const speedSlider = document.getElementById('speedSlider');
+      const speedValueText = document.getElementById('speedValueText');
+      const intervalSlider = document.getElementById('intervalSlider');
+      const intervalValueText = document.getElementById('intervalValueText');
+
+      // State variables
+      let currentBtnIndex = 0;
+      let currentXRatio = 0.5; // Current ratio along button (0.0 ~ 1.0)
+      let targetXRatio = 0.5;  // Target ratio to slide to
+      let direction = 1;       // 1: Right, -1: Left
+      let baseSpeed = 0.008;
+      let currentSpeedMultiplier = 1.0;
+      let hopIntervalMs = 3500;
+      let lastFrameTime = performance.now();
+      let hopTimer = null;
+
+      // Behavioral State (Idle / Grooming / Sliding)
+      let isGrooming = false;
+      let groomingEndTime = 0;
+      let nextSlideDecisionTime = 0;
+
+      // Leap state handling
+      let isLeaping = false;
+      let leapStartTime = 0;
+      let leapDuration = 500;
+      let leapStartPos = { x: 0, y: 0 };
+      let leapTargetPos = { x: 0, y: 0 };
+
+      // Paw animation counter
+      let pawStep = 0;
+
+      // Helper: get exact position tightly attached to top border relative to stageContainer
+      function getPetPosOnButton(btnIndex, ratio) {
+        const btn = buttons[btnIndex];
+        if (!btn || !stageContainer) return { x: 0, y: 0 };
+        
+        const stageRect = stageContainer.getBoundingClientRect();
+        const btnRect = btn.getBoundingClientRect();
+        
+        const petWidth = 32;
+        const petHeight = 26; // Height offset so paws land tightly on the top edge
+
+        // Relative coordinates within stageContainer
+        const relativeBtnLeft = btnRect.left - stageRect.left;
+        const relativeBtnTop = btnRect.top - stageRect.top;
+
+        const absoluteX = relativeBtnLeft + (btnRect.width * ratio) - (petWidth / 2);
+        const absoluteY = relativeBtnTop - petHeight; // Tight against top border
+        
+        return { x: absoluteX, y: absoluteY };
+      }
+
+      // Initialize Pet Position
+      function initPet() {
+        pet.style.display = 'flex';
+        switchTargetButton(Math.floor(Math.random() * buttons.length));
+        requestAnimationFrame(updateLoop);
+        startHopTimer();
+      }
+
+      // Random Button Selection (Never picks the exact same button twice in a row)
+      function getRandomButtonIndex() {
+        if (buttons.length <= 1) return 0;
+        let nextIndex = currentBtnIndex;
+        while (nextIndex === currentBtnIndex) {
+          nextIndex = Math.floor(Math.random() * buttons.length);
+        }
+        return nextIndex;
+      }
+
+      // Switch to next random target button with parabolic leap trajectory
+      function switchTargetButton(newIndex) {
+        const startPos = getPetPosOnButton(currentBtnIndex, currentXRatio);
+        
+        currentBtnIndex = newIndex;
+        targetXRatio = Math.random(); // Random target spot on top border
+        const targetPos = getPetPosOnButton(currentBtnIndex, targetXRatio);
+
+        // Reset grooming when leaped
+        isGrooming = false;
+        pet.classList.remove('pet-grooming');
+
+        // Setup leap animation trajectory
+        isLeaping = true;
+        leapStartTime = performance.now();
+        leapStartPos = startPos;
+        leapTargetPos = targetPos;
+
+        // Set direction facing towards target
+        direction = targetPos.x >= startPos.x ? 1 : -1;
+        petSvg.style.transform = direction === 1 ? 'scaleX(1)' : 'scaleX(-1)';
+
+        // Update Toast Text
+        const btnText = buttons[currentBtnIndex].innerText.split('\n')[0].trim();
+        currentLocationText.textContent = `${btnText} (隨機落地)`;
+      }
+
+      // Main Animation Frame Loop
+      function updateLoop(time) {
+        const delta = (time - lastFrameTime) / 16.66; // Normalized 60fps
+        lastFrameTime = time;
+
+        if (isLeaping) {
+          // Handle smooth arc jump between buttons
+          const elapsed = time - leapStartTime;
+          const progress = Math.min(1, elapsed / leapDuration);
+
+          // Linear interpolation for X, Parabolic Arc for Y
+          const currentX = leapStartPos.x + (leapTargetPos.x - leapStartPos.x) * progress;
+          const arcHeight = Math.min(65, Math.abs(leapTargetPos.x - leapStartPos.x) * 0.35 + 25);
+          const currentY = leapStartPos.y + (leapTargetPos.y - leapStartPos.y) * progress - (Math.sin(progress * Math.PI) * arcHeight);
+
+          pet.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+
+          if (progress >= 1) {
+            isLeaping = false;
+            currentXRatio = targetXRatio;
+          }
+        } else {
+          // Handle Grooming / Idle State
+          if (isGrooming) {
+            if (time > groomingEndTime) {
+              isGrooming = false;
+              pet.classList.remove('pet-grooming');
+              // Pick a new random target ratio on the button to slide to
+              targetXRatio = Math.random();
+            }
+          } else {
+            // Sliding / Running along current button top border
+            const currentBtn = buttons[currentBtnIndex];
+            if (currentBtn) {
+              const distance = targetXRatio - currentXRatio;
+
+              // Check if reached destination point on current button
+              if (Math.abs(distance) < 0.02) {
+                // 40% Chance to pause and groom hair, 60% chance to immediately slide to another spot
+                if (Math.random() < 0.4) {
+                  isGrooming = true;
+                  pet.classList.add('pet-grooming');
+                  groomingEndTime = time + 800 + Math.random() * 1400; // Groom for 0.8s - 2.2s
+                } else {
+                  targetXRatio = Math.random(); // Pick new spot on current button border
+                }
+              } else {
+                // Update direction and move smoothly
+                direction = distance > 0 ? 1 : -1;
+                const actualSpeed = baseSpeed * currentSpeedMultiplier * (delta || 1);
+                currentXRatio += direction * Math.min(Math.abs(distance), actualSpeed);
+
+                const pos = getPetPosOnButton(currentBtnIndex, currentXRatio);
+                pet.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
+                petSvg.style.transform = direction === 1 ? 'scaleX(1)' : 'scaleX(-1)';
+
+                // Paw movement animation
+                pawStep += actualSpeed * 18;
+                const leftY = Math.sin(pawStep) * 2.5;
+                const rightY = -Math.sin(pawStep) * 2.5;
+                pawLeft.setAttribute('transform', `translate(0, ${leftY})`);
+                pawRight.setAttribute('transform', `translate(0, ${rightY})`);
+              }
+            }
+          }
+        }
+
+        requestAnimationFrame(updateLoop);
+      }
+
+      // Auto Hop Timer Control
+      function startHopTimer() {
+        if (hopTimer) clearInterval(hopTimer);
+        hopTimer = setInterval(() => {
+          switchTargetButton(getRandomButtonIndex());
+        }, hopIntervalMs);
+      }
+
+      // Controls Events
+      btnManualHop.addEventListener('click', () => {
+        switchTargetButton(getRandomButtonIndex());
+        startHopTimer();
+      });
+
+      speedSlider.addEventListener('input', (e) => {
+        currentSpeedMultiplier = parseFloat(e.target.value);
+        speedValueText.textContent = `${currentSpeedMultiplier.toFixed(1)}x`;
+      });
+
+      intervalSlider.addEventListener('input', (e) => {
+        const seconds = parseFloat(e.target.value);
+        intervalValueText.textContent = `${seconds.toFixed(1)} 秒`;
+        hopIntervalMs = seconds * 1000;
+        startHopTimer();
+      });
+
+      window.addEventListener('resize', () => {
+        targetXRatio = Math.max(0, Math.min(1, targetXRatio));
+      });
+
+      // Launch
+      initPet();
+    });
+  </script>
+</body>
+</html>
