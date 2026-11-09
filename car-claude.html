@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>浪人包膜 頭份店｜特斯拉特技展演</title>
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;overflow:hidden;background:#03050c;color:#e8f1ff;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0;z-index:0;background:radial-gradient(60% 50% at 20% 15%,rgba(40,120,255,.28),transparent 70%),radial-gradient(50% 45% at 85% 25%,rgba(0,220,200,.16),transparent 70%),radial-gradient(70% 60% at 50% 110%,rgba(90,60,255,.22),transparent 70%);animation:aur 18s ease-in-out infinite alternate}
+@keyframes aur{to{transform:translateY(-3%) scale(1.06);filter:hue-rotate(25deg)}}
+@media(prefers-reduced-motion:reduce){body::before{animation:none}}
+header{position:relative;z-index:5;text-align:center;padding-top:7vh}
+h1{margin:0;font-size:clamp(30px,7vw,68px);font-weight:900;letter-spacing:.14em;text-shadow:0 0 18px rgba(80,170,255,.8),0 0 48px rgba(40,110,255,.5)}
+header p{margin:.6em 0 0;color:#8fb8e8;letter-spacing:.3em;font-size:clamp(11px,2vw,14px)}
+.rail-track{position:absolute;left:0;right:0;height:2px;z-index:10;background:linear-gradient(90deg,transparent,#2fa8ff 12%,#b4ecff 50%,#2fa8ff 88%,transparent);box-shadow:0 0 12px #2fa8ff,0 0 34px #1b6bff}
+#gl{position:fixed;inset:0;z-index:50;pointer-events:none}
+.panel{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;width:min(320px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:rgba(6,12,26,.8);backdrop-filter:blur(10px);border:1px solid rgba(60,170,255,.35);border-radius:14px;padding:10px 12px;font-size:12px}
+.sheet{position:fixed;right:12px;bottom:calc(66px + env(safe-area-inset-bottom,0px));z-index:60;width:min(330px,calc(100vw - 24px));box-sizing:border-box;overflow:auto;background:rgba(6,12,26,.88);backdrop-filter:blur(10px);border:1px solid rgba(60,170,255,.35);border-radius:14px;padding:10px 12px;font-size:12px;display:none}.sheet.open{display:block}.sheet summary{display:none}.sheet h3{margin:0 0 6px;font-size:13px}.sheet ul{padding-left:16px;margin:4px 0 8px}.sheet li{margin:4px 0;line-height:1.55}.dock{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:61;display:flex;gap:6px}.dock button{padding:9px 12px;font-size:13px;font-weight:700;background:rgba(6,12,26,.92)}.dock button[aria-expanded=true]{background:#15356a;border-color:#7cd0ff}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+button{background:#0e2342;color:#dff0ff;border:1px solid rgba(60,170,255,.5);border-radius:8px;padding:7px 4px;font:inherit;cursor:pointer}
+button:hover{background:#15356a}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #7cd0ff;outline-offset:2px}
+.r{display:grid;grid-template-columns:1fr auto;gap:2px 8px;margin:8px 0;align-items:center}
+.r input[type=range],.r select{grid-column:1/3;width:100%}
+.r select{background:#0b1830;color:inherit;border:1px solid #2a5a98;border-radius:6px;padding:5px}
+.r output{color:#7cd0ff;font-variant-numeric:tabular-nums}
+.chk{grid-template-columns:auto 1fr;justify-content:start}
+</style></head><body>
+<header id="hd"><h1 id="title">浪人包膜 頭份店</h1><p>特斯拉特技展演</p></header>
+<div class="rail-track" id="rail"></div>
+<canvas id="gl"></canvas>
+<div class="sheet open" id="panel"></div><div class="sheet" id="help"></div><div class="dock"><button id="tCtl" aria-expanded="true">🎛️ 展演控制面板</button><button id="tHelp" aria-expanded="false">📖 使用說明</button></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+// ===== 參數 =====
+const DEF={stuntMode:'random',probVTOL:20,probSpin:40,probArc:40,arcHeight:140,flightDuration:4.7,spinCount:3,patrolSpeedMin:2,patrolSpeedMax:4,smokeDensity:10,autoColor:true,gasColor:'gold',carModel:'sedan',trailGlow:true,textPassOpacity:0.85};
+let P={...DEF};const CARS=[['sedan','圓潤四門轎跑'],['coupe','流線雙門跑車'],['hatch','圓潤小型掀背'],['suv','圓潤休旅'],['spyder','🏎️ 敵篷超跑'],['toy','🧸 玩具超跑（小朋友款）'],['cart','🐂 阿公的牛車']],GASN=[['gold','🟡 金色'],['blue','🔵 霓虹藍'],['white','⚪ 純白'],['orange','🟠 火焰橘'],['purple','🟣 魅影紫'],['green','🟢 螢光綠'],['car','🎨 跟隨車色'],['pink','🌸 粉紅色'],['tiffany','💎 Tiffany 綠'],['rainbow','🌈 彩虹']];
+const GLB_URL=''; // 放入通用電動轎跑模型路徑，例如 './models/ev.glb'；留空則使用內建程式生成車體
+const G=520, BASE=100; // 等效重力 px/s²、1x 巡航速度 px/s
+const SL=[['probVTOL','直升機機率 %',0,100,1],['probSpin','3D 空翻機率 %',0,100,1],['probArc','拋物線機率 %',0,100,1],['arcHeight','飛躍最大高度 px',50,300,1],['flightDuration','飛行總耗時 s',1,8,.1],['spinCount','空中旋轉圈數',0,5,1],['patrolSpeedMin','巡航速度下限 x',.2,10,.1],['patrolSpeedMax','巡航速度上限 x',.2,10,.1],['smokeDensity','噴霧氣體密度',1,20,1],['textPassOpacity','穿越標題透明度',.2,1,.05]];
+const MODES=[['random','🎲 隨機自動輪播'],['VTOL','🚁 直升機垂直升降'],['Spin','🌀 3D 空翻'],['Arc','🌈 拋物線弧形']];
+const panel=document.getElementById('panel');
+panel.innerHTML='<details open><summary>🎛️ 展演控制面板</summary><div class="btns"><button id="bPause">⏸️ 暫停/繼續 動畫</button><button id="bGo">🚀 手動表演特技</button><button id="bReset">🔄 恢復預設值</button><button id="bCopy">📋 複製 JSON 設定檔</button><button id="bColor">🎨 隨機換色</button></div><label class="r">飛行特技模式<select id="stuntMode">'+MODES.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label><label class="r">車款<select id="carModel">'+CARS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label><label class="r">噴霧色板<select id="gasColor">'+GASN.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label>'+SL.map(s=>`<label class="r">${s[1]}<output id="o_${s[0]}"></output><input type="range" id="${s[0]}" min="${s[2]}" max="${s[3]}" step="${s[4]}"></label>`).join('')+'<label class="r chk"><input type="checkbox" id="autoColor">每次特技後自動改色</label><label class="r chk"><input type="checkbox" id="trailGlow">殘影／霓虹光暈</label><div class="r">目前膜色<output id="cname">珍珠白</output></div></details>';
+function sync(){for(const k in P){const e=document.getElementById(k);if(!e)continue;e.type==='checkbox'?e.checked=P[k]:e.value=P[k];const o=document.getElementById('o_'+k);if(o)o.textContent=P[k]}}
+panel.addEventListener('input',e=>{const t=e.target;if(!(t.id in P))return;P[t.id]=t.type==='checkbox'?t.checked:t.type==='range'?+t.value:t.value;if(t.id==='carModel')showModel();sync()});
+sync();
+
+const help=document.getElementById('help');
+help.innerHTML='<h3>📖 使用說明</h3><ul><li><b>這是什麼</b>：浪人包膜的 3D 特技展演，車子在霓虹軌道上巡航，並隨機表演特技。</li><li><b>特技模式</b>：直升機＝垂直升降；3D 空翻＝空中翻轉（可調圈數）；拋物線＝弧形飛越。選「隨機自動輪播」會依三個機率自動表演。</li><li><b>機率滑桿</b>：只在隨機模式有效，三者會自動換算成比例。</li><li><b>🚀 手動表演特技</b>：馬上表演一次。<b>⏸️ 暫停/繼續</b>：凍結或恢復所有動畫。</li><li><b>車款</b>：轎跑、跑車、掀背、休旅、洞篷超跑、玩具超跑，還有阿公的牛車。</li><li><b>膜色</b>：每次特技後自動換色，也可按「🎨 隨機換色」手動換；可取消「自動改色」。</li><li><b>噴霧色板</b>：選氣體顏色，可跟隨車色或彩虹；密度越高氣體越濃。</li><li><b>氣體物理</b>：噴嘴固定在車身，推力＝重力＋加速度。上升強噴、緩降輕噴（仍向下），翻轉時噴向隨車身轉動，前後另有姿態噴嘴。</li><li><b>📋 複製 JSON</b>：匯出目前設定。<b>🔄 恢復預設值</b>：全部還原。</li><li><b>面板</b>：兩個按鈕固定在右下角，點一下展開、再點收起，同時只開一個，並且不會擋到車子的軌道。</li></ul>';
+const sheetOf={tCtl:panel,tHelp:help};
+for(const id in sheetOf)document.getElementById(id).onclick=()=>{const on=!sheetOf[id].classList.contains('open');for(const k in sheetOf){sheetOf[k].classList.toggle('open',k===id&&on);document.getElementById(k).setAttribute('aria-expanded',String(k===id&&on))}};
+// ===== Three.js 場景 =====
+const T=THREE, clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)), sm=t=>{t=clamp(t);return t*t*(3-2*t)};
+const gl=document.getElementById('gl'),rail=document.getElementById('rail'),title=document.getElementById('title');
+const renderer=new T.WebGLRenderer({canvas:gl,alpha:true,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new T.Scene(),cam=new T.PerspectiveCamera(30,1,1,6000);
+scene.add(new T.AmbientLight(0x8899bb,.7),new T.HemisphereLight(0xcfe4ff,0x101830,.6));
+const l1=new T.DirectionalLight(0xffffff,1.2);l1.position.set(200,500,400);
+const l2=new T.DirectionalLight(0x6fb0ff,.7);l2.position.set(-400,100,250);scene.add(l1,l2);
+let railY=0,railS=0,titleMid=0;
+function layout(){
+  const w=innerWidth,h=innerHeight;renderer.setSize(w,h);cam.aspect=w/h;
+  const d=(h/2)/Math.tan(T.MathUtils.degToRad(15)),tilt=.22;
+  cam.position.set(w/2,h/2+d*Math.sin(tilt),d*Math.cos(tilt));cam.lookAt(w/2,h/2,0);cam.updateProjectionMatrix();cam.updateMatrixWorld();
+  const r=title.getBoundingClientRect();railS=r.bottom+96;rail.style.top=railS+'px';{const mh=Math.max(140,h-railS-36-64);document.querySelectorAll('.sheet').forEach(e=>e.style.maxHeight=mh+'px')} // 面板高度限制在軌道線下方，不擋車路線
+  titleMid=(r.top+r.bottom)/2;
+  railY=h-railS;
+  for(let i=0;i<3;i++){const v=new T.Vector3(w/2,railY,0).project(cam);railY+=((1-v.y)/2*h)-railS} // 透視補償，讓車輪貼合軌道線
+}
+addEventListener('resize',layout);
+
+// 車體材質：珍珠白
+const M=o=>Object.assign(o,{transparent:true});
+const pearl=M(new T.MeshPhysicalMaterial({color:0xf6f8fc,metalness:.35,roughness:.22,clearcoat:1,clearcoatRoughness:.06}));
+const glass=M(new T.MeshPhysicalMaterial({color:0x0a1018,metalness:.9,roughness:.05}));
+const dark=M(new T.MeshStandardMaterial({color:0x101318,roughness:.6}));
+const rimM=M(new T.MeshStandardMaterial({color:0xcfe9ff,metalness:.9,roughness:.2}));
+const lamp=M(new T.MeshBasicMaterial({color:0xffffff})),tail=M(new T.MeshBasicMaterial({color:0xff2030}));
+const mats=[pearl,glass,dark,rimM,lamp,tail];
+// 包膜換色：名稱、色碼、金屬度、粗糙度、清漆（0 = 消光膜）
+const WRAPS=[['珍珠白',0xf6f8fc,.35,.22,1],['消光黑',0x15171c,.2,.65,0],['電光藍',0x1670ff,.5,.2,1],['熔岩橘',0xff5a14,.45,.25,1],['翡翠綠',0x0fa56a,.5,.22,1],['消光軍綠',0x4a5a3a,.2,.7,0],['魅影紫',0x7a3cff,.55,.2,1],['玫瑰金',0xe0a08a,.8,.25,1],['消光水泥灰',0x7d8590,.3,.6,0],['櫻花粉',0xff8fb8,.4,.25,1],['螢光黃',0xe8ff2a,.4,.25,1],['粉紅色',0xff5fa8,.4,.25,1],['Tiffany 綠',0x2fc9c0,.5,.22,1]];
+const cname=document.getElementById('cname'),wFrom=new T.Color(),wTo=new T.Color();let wi=0,wT=1,wF=[.35,.22,1],wTT=[.35,.22,1];
+function recolor(){
+  let n;do{n=Math.floor(Math.random()*WRAPS.length)}while(n===wi);wi=n;const w=WRAPS[n];
+  wFrom.copy(pearl.color);wTo.setHex(w[1]);wF=[pearl.metalness,pearl.roughness,pearl.clearcoat];wTT=[w[2],w[3],w[4]];wT=0;cname.textContent=w[0];
+  const c=[Math.min(1,wTo.r+.25),Math.min(1,wTo.g+.25),Math.min(1,wTo.b+.25)]; // 換膜閃光粒子
+  for(let i=0;i<70;i++){const a=Math.random()*Math.PI*2,s=80+Math.random()*180;emit(car.x+(Math.random()-.5)*60,railY+16+car.h+(Math.random()-.5)*20,Math.cos(a)*s,Math.sin(a)*s,c,.8)}
+}
+const pivot=new T.Group(),inner=new T.Group(),proc=new T.Group();pivot.add(inner);inner.add(proc);scene.add(pivot);
+(function(){
+  return;const s=new T.Shape();s.moveTo(-39,-8);s.lineTo(-39.5,0);s.quadraticCurveTo(-37,4,-26,5);
+  s.bezierCurveTo(-18,6,-14,13,-5,14);s.bezierCurveTo(4,14.5,10,12,19,5);s.quadraticCurveTo(33,3.5,38,0);s.lineTo(39.5,-4);s.lineTo(39,-8);s.lineTo(-39,-8);
+  const b=new T.Mesh(new T.ExtrudeGeometry(s,{depth:26,bevelEnabled:true,bevelSize:2,bevelThickness:2.5,bevelSegments:3,curveSegments:16}),pearl);b.geometry.translate(0,0,-13);
+  const g=new T.Shape();g.moveTo(-22,5.4);g.lineTo(-6,12.6);g.lineTo(4,13);g.lineTo(17,5.4);
+  const gm=new T.Mesh(new T.ExtrudeGeometry(g,{depth:31.6,bevelEnabled:false}),glass);gm.geometry.translate(0,0,-15.8);
+  proc.add(b,gm);
+  for(const x of[-25,25])for(const z of[-14.5,14.5]){
+    const w=new T.Mesh(new T.CylinderGeometry(7,7,5,24).rotateX(Math.PI/2),dark),r=new T.Mesh(new T.CylinderGeometry(4.2,4.2,5.4,6).rotateX(Math.PI/2),rimM);
+    w.add(r);w.position.set(x,-9,z);w.userData.wheel=1;proc.add(w);
+  }
+  for(const z of[-9,9]){const h=new T.Mesh(new T.BoxGeometry(1.5,1.8,6),lamp);h.position.set(39.8,-1.5,z);proc.add(h)}
+  const t=new T.Mesh(new T.BoxGeometry(1.2,1.6,26),tail);t.position.set(-40.2,1,0);proc.add(t);
+})();
+const under=new T.PointLight(0x37b6ff,1.5,140);under.position.set(0,-14,0);inner.add(under);
+// ===== 車款（圓潤造型 + 透明擋風玻璃、車門、門把、車牌、車燈）=====
+const MK=(c,r=.7,mt=0)=>M(new T.MeshStandardMaterial({color:c,roughness:r,metalness:mt}));
+const glassM=new T.MeshPhysicalMaterial({color:0x1a2a3a,metalness:.2,roughness:.05,transparent:true,opacity:.4,depthWrite:false});
+const tireM=MK(0x0c0d10,.9),seatM=MK(0x222a35),archM=MK(0x050608),lineM=M(new T.MeshBasicMaterial({color:0x07090d}));
+const pcv=document.createElement('canvas');pcv.width=256;pcv.height=128;
+(c=>{c.fillStyle='#f4f4f0';c.fillRect(0,0,256,128);c.fillStyle='#1a3a8a';c.fillRect(0,0,256,30);c.fillStyle='#fff';c.font='bold 22px sans-serif';c.textAlign='center';c.fillText('浪人包膜',128,23);c.fillStyle='#111';c.font='bold 40px sans-serif';c.fillText('RONIN 888',128,95)})(pcv.getContext('2d'));
+const plateM=M(new T.MeshStandardMaterial({map:new T.CanvasTexture(pcv),roughness:.5}));
+mats.push(tireM,seatM,archM,lineM,plateM);
+const MODELS={
+ sedan:{low:[[-39.5,-6],[-39.7,-1],[-36,3.5],[-26,5.2],[-8,5.8],[12,5.6],[28,4.2],[37,1.2],[39.6,-3],[39.2,-7]],gh:[[-27,5.8],[-12.5,13.6],[5,14.4],[19.5,6]],B:2,doors:[-16,2,20],seats:[-6,8],wx:[-25,25],wr:7.2},
+ coupe:{low:[[-40,-6],[-40.2,-1.5],[-37,3],[-28,4.6],[-10,5],[14,4.8],[30,3.2],[38,.4],[40.4,-3.4],[40,-7]],gh:[[-26,5],[-14,11.6],[3,12.6],[19,5.2]],B:null,doors:[-8,22],seats:[-3],wx:[-26,26],wr:7.2},
+ hatch:{low:[[-33,-6],[-33.4,0],[-31,4.5],[-24,6.2],[-8,6.6],[10,6.2],[22,4.6],[30,1.2],[33,-3],[32.6,-7]],gh:[[-31,6.4],[-27,15.8],[7,16.2],[17,6.4]],B:0,doors:[-14,0,16],seats:[-8,6],wx:[-20,20],wr:6.8},
+ suv:{low:[[-39,-5.5],[-39.4,0],[-37,5.5],[-28,7],[-8,7.4],[12,7.2],[28,5.6],[37,2],[39.4,-2.6],[39,-6.5]],gh:[[-37,7.2],[-33,17.8],[8,18.4],[22,7.2]],B:0,doors:[-18,0,20],seats:[-14,0,12],wx:[-25,25],wr:8},
+ toy:{low:[[-27,-6],[-28,0],[-25,6],[-16,8.5],[-4,9],[8,8],[20,5],[26,1],[27.5,-3],[27,-7]],gh:[[-22,8],[-16,19],[4,20],[14,8]],B:null,doors:[-10,10],seats:[-4],wx:[-17,17],wr:9,eyes:true},
+ spyder:{open:true,low:[[-41,-6],[-41.4,-1.5],[-38,2.8],[-26,4.4],[-12,5],[0,4.4],[12,3.6],[26,3],[37,.6],[41,-3.2],[40.6,-7]],gh:[[5,4.8],[10.2,9.4],[11.4,9.4],[16.5,4.6]],B:null,doors:[-16,8],seats:[-2],wx:[-28,27],wr:7.6,
+  extra:(add,x0)=>{for(const s of[-1,1]){add(new T.BoxGeometry(9,3,.5),archM,-12,.2,s*14.2);add(new T.BoxGeometry(5,5,4.8),pearl,-9,8.4,s*6);add(new T.BoxGeometry(2,3,.8),pearl,x0+4.2,4.6,s*10)}add(new T.BoxGeometry(7,.8,24),pearl,x0+4,6.4,0)}}
+};
+function buildCar(m){
+  const g=new T.Group(),add=(geo,mat,x=0,y=0,z=0)=>{const o=new T.Mesh(geo,mat);o.position.set(x,y,z);g.add(o);return o},V=p=>new T.Vector2(p[0],p[1]);
+  const xs=m.low.map(p=>p[0]),x0=Math.min(...xs)-2.2,x1=Math.max(...xs)+2.2,[rb,rt,ft,fb]=m.gh;
+  add(new T.ExtrudeGeometry(new T.Shape(new T.SplineCurve(m.low.map(V)).getPoints(48)),{depth:22,bevelEnabled:true,bevelSize:2.2,bevelThickness:3,bevelSegments:5}).translate(0,0,-11),pearl);
+  add(new T.ExtrudeGeometry(new T.Shape(m.gh.map(V)),{depth:22.6,bevelEnabled:false}).translate(0,0,-11.3),glassM).renderOrder=2;
+  if(!m.open)add(new T.ExtrudeGeometry(new T.Shape([[rt[0]-2.5,rt[1]-1.4],[rt[0]+.5,rt[1]+1.5],[ft[0]-.5,ft[1]+1.5],[ft[0]+2.5,ft[1]-1.4]].map(V)),{depth:20,bevelEnabled:true,bevelSize:1,bevelThickness:1.6,bevelSegments:3}).translate(0,0,-10),pearl);
+  const bar=(a,b,z)=>{add(new T.BoxGeometry(Math.hypot(b[0]-a[0],b[1]-a[1]),1.5,1.9),pearl,(a[0]+b[0])/2,(a[1]+b[1])/2,z).rotation.z=Math.atan2(b[1]-a[1],b[0]-a[0])};
+  for(const z of[-11.4,11.4]){bar(fb,[ft[0]+1,ft[1]-.6],z);bar(rb,[rt[0]-1,rt[1]-.6],z);if(m.B!=null){const yb=rt[1]+(ft[1]-rt[1])*(m.B-rt[0])/(ft[0]-rt[0]);bar([m.B,5.8],[m.B,yb-.5],z)}}
+  m.seats.forEach(sx=>[-5.2,5.2].forEach(z=>{add(new T.BoxGeometry(6,2,6.2),seatM,sx,7.2,z);add(new T.BoxGeometry(1.8,4.6,6.2),seatM,sx-3.2,9.6,z).rotation.z=.15}));
+  add(new T.BoxGeometry(3.5,3,19),seatM,fb[0]-5,7.4,0);
+  const D=m.doors,dA=D[0],dB=D[D.length-1];
+  for(const z of[-14.15,14.15]){D.forEach(x=>add(new T.BoxGeometry(.35,9.4,.3),lineM,x,.2,z));add(new T.BoxGeometry(dB-dA,.35,.3),lineM,(dA+dB)/2,-5,z);
+    for(let i=0;i<D.length-1;i++)add(new T.BoxGeometry(4,.9,.9),rimM,D[i]+(D[i+1]-D[i])*.28,2.6,z*1.012)}
+  for(const s of[-1,1])add(new T.BoxGeometry(3,2.2,3),pearl,fb[0]-2,8,s*15.4);
+  for(const z of[-8.4,8.4])add(new T.BoxGeometry(1.2,1.5,6.5),lamp,x1-1.3,-.6,z);
+  if(m.eyes)for(const z of[-7,7])add(new T.CylinderGeometry(3.2,3.2,1.4,20).rotateZ(Math.PI/2),lamp,x1-1,1,z);
+  add(new T.BoxGeometry(.6,.45,22),lamp,x1-1.9,1,0);add(new T.BoxGeometry(.8,1.4,21),tail,x0+.9,-.4,0);
+  add(new T.BoxGeometry(.5,4.6,10.5),plateM,x0+.3,-4.4,0);add(new T.BoxGeometry(.5,4.6,10.5),plateM,x1-.6,-4.8,0);
+  add(new T.BoxGeometry(x1-x0-10,1,20),archM,(x0+x1)/2,-9.3,0);
+  for(const x of m.wx)for(const z of[-12.6,12.6]){
+    const w=new T.Group(),sg=Math.sign(z),cyl=(r,h,mat)=>new T.Mesh(new T.CylinderGeometry(r,r,h,28).rotateX(Math.PI/2),mat);
+    w.userData.wheel=1;w.userData.r=m.wr;w.position.set(x,m.wr-16,z);w.add(cyl(m.wr,5,tireM),cyl(m.wr*.66,5.2,rimM));
+    for(let i=0;i<5;i++){const a=i*Math.PI*2/5,L=m.wr*.62,s=new T.Mesh(new T.BoxGeometry(L,1,.5),dark);s.rotation.z=a;s.position.set(Math.cos(a)*L/2,Math.sin(a)*L/2,sg*2.75);w.add(s)}
+    g.add(w);add(new T.CylinderGeometry(m.wr+1,m.wr+1,.4,28).rotateX(Math.PI/2),archM,x,m.wr-16,sg*14.05);
+  }
+  if(m.extra)m.extra(add,x0,x1);return g;
+}
+// 🐂 阿公的牛車（搞笑款：棚頂仍用包膜色、車尾綁火箭推進器）
+function buildCart(){
+  const g=new T.Group(),add=(geo,mat,x=0,y=0,z=0)=>{const o=new T.Mesh(geo,mat);o.position.set(x,y,z);g.add(o);return o};
+  const wood=MK(0x8a5a2b,.9),ox=MK(0x6b4423,.85),horn=MK(0xf2ead0,.5),skin=MK(0xe0b48a,.7),shirt=MK(0x2d5aa0,.8),hat=MK(0xe8d27a,.9),snout=MK(0xf0a0a0,.6),red=MK(0xcc2222,.5),blk=MK(0x050505,.5);
+  mats.push(wood,ox,horn,skin,shirt,hat,snout,red,blk);
+  add(new T.BoxGeometry(40,2.5,22),wood,-18,-4,0);
+  for(const s of[-1,1]){add(new T.BoxGeometry(40,5,1.2),pearl,-18,-.5,s*10.8);for(const x of[-34,-4])add(new T.BoxGeometry(1.4,13,1.4),wood,x,5.5,s*10.5)}
+  add(new T.BoxGeometry(1.2,5,22),pearl,-37.6,-.5,0);add(new T.BoxGeometry(38,1.6,25),pearl,-19,12.2,0);
+  add(new T.BoxGeometry(5,7,6),shirt,-6,1,0);add(new T.SphereGeometry(3,16,12),skin,-6,7,0);add(new T.ConeGeometry(6.5,2.6,20),hat,-6,10.2,0);
+  for(const s of[-1,1]){
+    const w=new T.Group();w.userData.wheel=1;w.userData.r=11;w.position.set(-14,-5,s*12.6);
+    w.add(new T.Mesh(new T.TorusGeometry(9.7,1.3,8,32),wood),new T.Mesh(new T.CylinderGeometry(2.2,2.2,3,12).rotateX(Math.PI/2),wood));
+    for(let i=0;i<8;i++){const a=i*Math.PI/4,sp=new T.Mesh(new T.BoxGeometry(10,.9,1.2),wood);sp.rotation.z=a;sp.position.set(Math.cos(a)*5,Math.sin(a)*5,0);w.add(sp)}
+    g.add(w);add(new T.BoxGeometry(22,1,1),wood,10,-3,s*5);
+    add(new T.CylinderGeometry(1.8,1.8,14,12).rotateZ(Math.PI/2),red,-26,-8,s*5.5);add(new T.ConeGeometry(2.2,2.5,12).rotateZ(Math.PI/2),blk,-34,-8,s*5.5);
+    add(new T.BoxGeometry(1.2,1.2,1.2),blk,48.6,7.4,s*4.6);add(new T.BoxGeometry(1,5,1),horn,44,11.5,s*4.2).rotation.x=s*.5;add(new T.BoxGeometry(1.2,3,3),ox,43,9,s*5.6);
+    for(const x of[24,36]){const lg=new T.Group();lg.userData.leg=x+s*2;lg.position.set(x,-5,s*4.5);const lb=new T.Mesh(new T.BoxGeometry(3.2,11,3.2),ox);lb.position.y=-5.5;lg.add(lb);g.add(lg)}
+  }
+  add(new T.BoxGeometry(1.2,1.2,26),wood,-14,-5,0);add(new T.BoxGeometry(1.5,1.5,14),wood,21,2,0);
+  add(new T.BoxGeometry(22,12,14),ox,30,1,0);add(new T.BoxGeometry(8,8,9),ox,45,6,0);add(new T.BoxGeometry(3,4,7),snout,50,3,0);
+  const tl=new T.Group();tl.userData.leg=2;tl.position.set(19,5,0);const tb=new T.Mesh(new T.BoxGeometry(1,8,1),ox);tb.position.y=-4;tl.add(tb);g.add(tl);
+  g.position.x=-4;return g;
+}
+const procs={};for(const k in MODELS){procs[k]=buildCar(MODELS[k]);proc.add(procs[k])}procs.cart=buildCart();proc.add(procs.cart);
+function showModel(){for(const k in procs)procs[k].visible=k===P.carModel}showModel();
+if(GLB_URL&&T.GLTFLoader)new T.GLTFLoader().load(GLB_URL,g=>{ // 載入外部 GLB：自動縮放為約 78px 長、車頭朝 +x，車漆材質套用珍珠白
+  const m=g.scene;let b=new T.Box3().setFromObject(m),z=b.getSize(new T.Vector3());if(z.z>z.x)m.rotation.y=Math.PI/2;
+  b.setFromObject(m);z=b.getSize(new T.Vector3());m.scale.setScalar(78/z.x);b.setFromObject(m);const c=b.getCenter(new T.Vector3());
+  m.position.set(-c.x,-16-b.min.y,-c.z);
+  m.traverse(o=>{if(o.isMesh&&/body|paint|car/i.test((o.material.name||'')+o.name))o.material=pearl});
+  inner.remove(proc);inner.add(m);
+});
+
+// ===== 粒子 =====
+const N=3000,pp=new Float32Array(N*3).fill(-9999),pc=new Float32Array(N*4),pv=new Float32Array(N*2),pl=new Float32Array(N),pm=new Float32Array(N),pb=new Float32Array(N*3);let pi=0;
+const geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(pp,3));geo.setAttribute('col',new T.BufferAttribute(pc,4));
+const cv=document.createElement('canvas');cv.width=cv.height=64;const cx=cv.getContext('2d'),gr=cx.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.4,'rgba(255,255,255,.4)');gr.addColorStop(1,'rgba(255,255,255,0)');cx.fillStyle=gr;cx.fillRect(0,0,64,64);
+const PXS=18*renderer.getPixelRatio();const pts=new T.Points(geo,new T.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{px:{value:PXS}},vertexShader:'attribute vec4 col;varying vec4 v;uniform float px;void main(){v=col;gl_PointSize=col.w>.002?px*(1.8-col.w):0.;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec4 v;void main(){float d=length(gl_PointCoord-.5)*2.;gl_FragColor=vec4(v.rgb,smoothstep(1.,0.,d)*v.w);}'}));pts.renderOrder=3;pts.frustumCulled=false;scene.add(pts);
+const GAS={gold:[1,.78,.3],blue:[.4,.75,1],white:[.92,.96,1],orange:[1,.45,.12],purple:[.65,.4,1],green:[.3,1,.6],pink:[1,.5,.75],tiffany:[.3,.85,.8]};
+function gasCol(){const g=P.gasColor;if(g==='car')return[Math.min(1,pearl.color.r+.35),Math.min(1,pearl.color.g+.35),Math.min(1,pearl.color.b+.35)];if(g==='rainbow'){const c=new T.Color().setHSL((performance.now()/1500+Math.random()*.15)%1,1,.58);return[c.r,c.g,c.b]}return GAS[g]||GAS.gold}
+function emit(x,y,vx,vy,c,life){const i=pi++%N;pp[i*3]=x;pp[i*3+1]=y;pp[i*3+2]=0;pv[i*2]=vx;pv[i*2+1]=vy;pl[i]=pm[i]=life;pb.set(c,i*3)}
+function updP(dt){
+  for(let i=0;i<N;i++){
+    if(pl[i]<=0){pc[i*4+3]=0;continue}
+    pl[i]-=dt;const d=Math.exp(-1.6*dt);pv[i*2]*=d;pv[i*2+1]*=d;pp[i*3]+=pv[i*2]*dt;pp[i*3+1]+=pv[i*2+1]*dt;
+    if(pp[i*3+1]<railY){pp[i*3+1]=railY;pv[i*2+1]=Math.abs(pv[i*2+1])*.2;pv[i*2]*=1.5} // 地面效應：沿軌道向兩側擴散
+    pc[i*4]=pb[i*3];pc[i*4+1]=pb[i*3+1];pc[i*4+2]=pb[i*3+2];pc[i*4+3]=Math.pow(Math.max(0,pl[i]/pm[i]),1.2)*.75;
+  }
+  geo.attributes.position.needsUpdate=geo.attributes.col.needsUpdate=true;
+}
+
+// ===== 車輛狀態與特技 =====
+const sample=()=>{const a=Math.min(P.patrolSpeedMin,P.patrolSpeedMax),b=Math.max(P.patrolSpeedMin,P.patrolSpeedMax);return(a+Math.random()*(b-a))*BASE};
+const car={x:innerWidth*.3,h:0,dir:1,vx:0,vt:0,vy:0,pitch:0,roll:0,face:1,op:1};
+const st={mode:null,u:0,vx0:0,turn:3,auto:4};let paused=false;
+layout();car.vt=sample();car.vx=car.vt;
+const hF=(m,u)=>{u=clamp(u);return m==='VTOL'?(u<.3?sm(u/.3):u>.7?1-sm((u-.7)/.3):1):4*u*(1-u)};
+function pitchOf(u){
+  const m=st.mode;if(m==='VTOL')return 0;
+  if(m==='Arc'||P.spinCount===0){const e=.004,vy=(hF(m,u+e)-hF(m,u-e))/(2*e)*P.arcHeight/P.flightDuration;return car.dir*Math.atan2(vy,Math.abs(st.vx0)||1)}
+  return -car.dir*2*Math.PI*P.spinCount*(.5-.5*Math.cos(Math.PI*clamp((u-.1)/.8)));
+}
+function pick(){
+  if(P.stuntMode!=='random')return P.stuntMode;
+  const w=[['VTOL',P.probVTOL],['Spin',P.probSpin],['Arc',P.probArc]],s=w.reduce((a,b)=>a+b[1],0);if(s<=0)return 'Arc';
+  let r=Math.random()*s;for(const[m,v]of w){if((r-=v)<0)return m}return 'Arc';
+}
+function start(m){
+  if(st.mode)return;st.mode=m;st.u=0;car.dir=car.x>innerWidth/2?-1:1;
+  const room=(car.dir>0?innerWidth+40-car.x:car.x+40)/P.flightDuration;st.vx0=car.dir*Math.min(sample(),room);car.vt=st.vx0;
+}
+function stepCar(dt){
+  let ay=0,alpha=0,axA=0,m=st.mode,u=st.u;
+  if(!m){ // 靜止巡航
+    st.turn-=dt;st.auto-=dt;
+    if(st.turn<=0||(car.x>innerWidth+40&&car.vt>0)||(car.x<-40&&car.vt<0)){car.vt=-Math.sign(car.vt||1)*sample();car.dir=Math.sign(car.vt);st.turn=2.5+Math.random()*3.5}
+    const pv0=car.vx;car.vx+=(car.vt-car.vx)*Math.min(1,dt*1.8);axA=dt>0?(car.vx-pv0)/dt*car.dir:0;
+    car.h=0;car.vy=0;car.pitch=car.roll=0;
+    if(st.auto<=0)start(pick());
+  }else{ // 特技飛行
+    u=st.u+=dt/P.flightDuration;
+    if(u>=1){st.mode=null;st.auto=3+Math.random()*4;if(P.autoColor)recolor();car.h=0;car.vy=0;car.pitch=car.roll=0;car.vx=st.vx0;car.vt=car.dir*sample();return{ay:0,alpha:0,axA:0}}
+    const e=.01,A=P.arcHeight,D=P.flightDuration,h0=hF(m,u),hp=hF(m,u+e),hm=hF(m,u-e);
+    car.h=h0*A;car.vy=(hp-hm)/(2*e)*A/D;ay=(hp-2*h0+hm)/(e*e)*A/(D*D);
+    car.vx=m==='VTOL'?st.vx0*(u<.5?1-sm(u/.25):sm((u-.75)/.25)):st.vx0;
+    car.pitch=pitchOf(u);const e2=.01;alpha=(pitchOf(u+e2)-2*car.pitch+pitchOf(u-e2))/((e2*D)**2);
+    car.roll=m==='Spin'?.6*Math.sin(2*Math.PI*clamp((u-.1)/.8)):0;
+  }
+  const px=car.x;car.x=clamp(car.x+car.vx*dt,-40,innerWidth+40);
+  inner.traverse(o=>{if(o.userData.wheel)o.rotation.z-=Math.abs(car.x-px)/(o.userData.r||7);else if(o.userData.leg!=null)o.rotation.z=Math.sin(car.x*.15+o.userData.leg)*.5});
+  return{ay,alpha,axA};
+}
+function emitAll(dt,k){
+  if(dt<=0)return;const m=st.mode,u=st.u;
+  const cr=Math.cos(car.roll),sp=Math.sin(car.pitch),cp=Math.cos(car.pitch);
+  const tw=(a,b)=>{const y1=b*cr,x1=a*car.dir;return[x1*cp-y1*sp,x1*sp+y1*cp]};
+  const wx=car.x,wy=railY+16+car.h;
+  const jet=(lx,ly,ex,ey,I)=>{ // 噴嘴固定於車身：位置與方向都隨車身姿態轉動
+    let n=P.smokeDensity*17*I*dt;n=Math.floor(n)+(Math.random()<n%1?1:0);if(n<=0)return;
+    const L=Math.hypot(ex,ey)||1;ex/=L;ey/=L;const[px,py]=tw(lx,ly);
+    for(;n>0;n--){const s=(150+300*I)*(.7+Math.random()*.6);
+      emit(wx+px+(Math.random()-.5)*5,wy+py+(Math.random()-.5)*3,ex*s+(Math.random()-.5)*70+car.vx*.4,ey*s+(Math.random()-.5)*70+car.vy*.4,gasCol(),.55+I*.7+Math.random()*.4)}
+  };
+  if(m){
+    const thrust=Math.max(0,G+k.ay); // 所需推力 T = m(g + a_y)；緩降時 T 變小但仍向下噴
+    let I=clamp(thrust/(1.6*G));if(u<.1)I*=1+(1-u/.1)*.8;else if(u>.92)I*=1.3;
+    const[dx,dy]=tw(0,-1);jet(-22,-12,dx,dy,clamp(I)*.6);jet(22,-12,dx,dy,clamp(I)*.6);
+    if(m!=='VTOL'&&u<.12){const[bx,by]=tw(-1,0);jet(-36,0,bx,by,.9*(1-u/.12))} // 起跳後噴
+    if(m==='Spin'&&Math.abs(k.alpha)>1.2){ // 姿態控制噴嘴 (RCS)：前後成對產生力矩
+      const I2=clamp(Math.abs(k.alpha)/7),sg=Math.sign(k.alpha);
+      for(const s of[30,-30]){const[rx,ry]=tw(s,0),l=Math.hypot(rx,ry)||1;jet(s,0,sg*ry/l,-sg*rx/l,I2*.9)}
+    }
+    if(P.trailGlow){let n=dt*55;n=Math.floor(n)+(Math.random()<n%1?1:0);for(;n>0;n--)emit(wx+(Math.random()-.5)*50,wy+(Math.random()-.5)*14,(Math.random()-.5)*30,(Math.random()-.5)*30,gasCol(),.5)}
+  }else if(Math.abs(k.axA)>40){ // 巡航加速／煞車
+    const I=clamp(Math.abs(k.axA)/250);
+    if(k.axA>0){const[bx,by]=tw(-1,0);jet(-36,0,bx,by,I)}else{const[fx,fy]=tw(1,0);jet(36,0,fx,fy,I)}
+  }
+}
+let last=performance.now();
+function frame(now){
+  const raw=Math.min(.05,(now-last)/1000);last=now;const dt=paused?0:raw;
+  const k=stepCar(dt);emitAll(dt,k);updP(dt);
+  car.face+=(car.dir-car.face)*Math.min(1,raw*9);if(Math.abs(car.face)<.06)car.face=.06*car.dir; // 轉向時車身翻面
+  pivot.position.set(car.x,railY+16+car.h,0);pivot.rotation.z=car.pitch;inner.rotation.x=car.roll;inner.rotation.y=-.3*car.face;inner.scale.x=car.face;
+  under.intensity=P.trailGlow?2.2:.8;
+  const sy=innerHeight-(railY+16+car.h);car.op+=((Math.abs(sy-titleMid)<70?P.textPassOpacity:1)-car.op)*Math.min(1,raw*10);
+  if(wT<1){wT=Math.min(1,wT+raw/.9);const q=sm(wT);pearl.color.copy(wFrom).lerp(wTo,q);pearl.metalness=wF[0]+(wTT[0]-wF[0])*q;pearl.roughness=wF[1]+(wTT[1]-wF[1])*q;pearl.clearcoat=wF[2]+(wTT[2]-wF[2])*q}
+  mats.forEach(x=>x.opacity=car.op);glassM.opacity=.4*car.op;
+  renderer.render(scene,cam);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ===== 按鈕 =====
+const $=id=>document.getElementById(id);
+$('bPause').onclick=()=>{paused=!paused;$('bPause').textContent=paused?'▶️ 繼續 動畫':'⏸️ 暫停/繼續 動畫'};
+$('bGo').onclick=()=>start(pick());
+$('bColor').onclick=recolor;
+$('bReset').onclick=()=>{P={...DEF};sync();wi=0;wT=1;pearl.color.setHex(0xf6f8fc);pearl.metalness=.35;pearl.roughness=.22;pearl.clearcoat=1;cname.textContent='珍珠白';showModel()};
+$('bCopy').onclick=async()=>{const j=JSON.stringify(P,null,2);try{await navigator.clipboard.writeText(j);$('bCopy').textContent='✅ 已複製'}catch(e){prompt('請手動複製：',j)}setTimeout(()=>$('bCopy').textContent='📋 複製 JSON 設定檔',1500)};
+</script></body></html>
