@@ -33,8 +33,8 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
     <canvas id="cv" class="rounded-xl border border-neutral-800 shadow-2xl cursor-move" style="max-width:100%;max-height:100%"></canvas>
   </div>
   <div class="flex flex-wrap items-center justify-center gap-1.5">
-    <button id="bPlay" class="chip sm">▶ 預覽</button>
-    <button id="bPlayHere" class="chip sm">▶ 從選取片段</button>
+    <button id="bPlay" class="chip sm">▶ 從頭預覽</button>
+    <button id="bPlayHere" class="chip sm">▶ 從選取片段預覽</button>
     <button id="bStop" class="chip sm">■</button>
     <button id="bSnap" class="chip sm">📷</button>
     <button data-a="9:16" class="asp chip sm on">9:16</button>
@@ -51,7 +51,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
       <span class="text-xs text-neutral-400 ml-auto">總長 <b id="totalT" class="text-amber-300">0</b> 秒</span>
     </div>
     <div id="stripWrap" class="overflow-x-auto"><div id="strip" class="relative" style="height:102px"></div></div>
-    <p class="text-[10px] text-neutral-500 mt-1">點上方灰色尺標可指定預覽起點 ‧ 橘色邊緣拖曳調整片段長度 ‧ 🔤 全片文字 ‧ 🔊 音效（可左右拖曳）</p>
+    <p class="text-[10px] text-neutral-500 mt-1">點上方灰色時間尺標任一處，就從那一秒開始預覽 ‧ 橘色邊緣拖曳調整片段長度 ‧ 🔤 全片文字 ‧ 🔊 音效（可左右拖曳）</p>
   </div>
   <p id="stat" class="text-[11px] text-neutral-400 text-center min-h-[14px]"></p>
 </section>
@@ -231,7 +231,7 @@ stp.addEventListener('pointermove',e=>{if(!op)return;
   if(op.k==='rs'){const c=clips[op.i];c.dur=Math.max(.5,Math.min(maxDur(c),r1(op.d0+dx)));if(op.i===sel){$('eDur').value=c.dur;labels(c)}}
   else{sfx[op.i].at=Math.max(0,Math.min(Math.max(0,total()-.2),r1(op.a0+dx)));sfxLabel(op.i);const sl=$('sl'+op.i+'atr');if(sl)sl.value=sfx[op.i].at}
   renderStrip()});
-const endOp=()=>{if(!op)return;if(op.k==='ruler'){const w=op.was;op=null;if(w)play();return}op=null;ppsLock=0;renderStrip();setMusicRange();syncText();redraw()};
+const endOp=()=>{if(!op)return;if(op.k==='ruler'){op=null;play(startAt);return}op=null;ppsLock=0;renderStrip();setMusicRange();syncText();redraw()};
 stp.addEventListener('pointerup',endOp);stp.addEventListener('pointercancel',endOp);
 
 function pick(i){stop();sel=i;if(selK==='c')selT=cur().texts.length?0:-1;refreshAll()}
@@ -519,7 +519,7 @@ async function makeVideo(){
 // ---------- 事件 ----------
 $('fVid').onchange=e=>{addFiles('video',[...e.target.files]);e.target.value=''};
 $('fImg').onchange=e=>{addFiles('image',[...e.target.files]);e.target.value=''};
-$('bPlay').onclick=()=>play();$('bPlayHere').onclick=()=>{if(sel<0)return;const L=tl()[sel];stop();play(L.s)};$('bStop').onclick=stop;$('bMake').onclick=makeVideo;
+$('bPlay').onclick=()=>{if(!clips.length)return;stop();play(0)};$('bPlayHere').onclick=()=>{if(sel<0)return;const L=tl()[sel];stop();play(L.s)};$('bStop').onclick=stop;$('bMake').onclick=makeVideo;
 document.querySelectorAll('.asp').forEach(b=>b.onclick=()=>{asp=b.dataset.a;document.querySelectorAll('.asp').forEach(x=>x.classList.toggle('on',x===b));stop();setSize()});
 window.addEventListener('resize',()=>renderStrip());
 setSize();renderStrip();renderTexts();renderSfx();
