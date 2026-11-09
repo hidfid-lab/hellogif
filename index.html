@@ -17,7 +17,7 @@ canvas{touch-action:none}
 .h{font-size:12px;color:#fbbf24;letter-spacing:.15em;font-weight:600;margin-bottom:10px}
 .chip{padding:8px;border-radius:10px;background:#262626;border:1px solid #404040;font-size:12px;color:#d4d4d4}
 .chip.on{border-color:#f59e0b;color:#fbbf24}
-select,textarea{width:100%;padding:8px;background:#262626;border:1px solid #404040;border-radius:10px;color:#eee;font-size:13px}
+select,textarea,input[type=text]{width:100%;padding:8px;background:#262626;border:1px solid #404040;border-radius:10px;color:#eee;font-size:13px}
 input[type=range]{width:100%;accent-color:#f59e0b}
 label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
 .row{display:flex;justify-content:space-between}
@@ -58,6 +58,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     <button class="tab chip" data-t="3">🎨 特效與相框</button>
     <button class="tab chip newbtn" data-t="4">🎞️ GIF 動畫 <span class="ml-1 px-1.5 rounded bg-red-500 text-white text-[10px]">新功能</span></button>
     <button class="tab chip newbtn" data-t="5">🎵 加音樂 <span class="ml-1 px-1.5 rounded bg-red-500 text-white text-[10px]">新</span></button>
+    <button class="tab chip newbtn" data-t="6">🎲 隨機設定 <span class="ml-1 px-1.5 rounded bg-red-500 text-white text-[10px]">新</span></button>
   </div>
   <div class="flex-1 overflow-y-auto p-3 lg:p-5 space-y-4">
 
@@ -69,7 +70,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
         <div class="grid grid-cols-5 gap-2" id="bgGallery"></div>
       </div>
       <div class="card">
-        <div class="h">我的照片庫（儲存於本機瀏覽器）</div>
+        <div class="h">我的照片庫（儲存於本機瀏覽器，也會加入「隨機靈感」）</div>
         <div class="grid grid-cols-5 gap-2" id="myGallery"></div>
         <p id="myEmpty" class="text-xs text-neutral-500">尚未上傳照片。上傳後會自動保存，下次開啟仍在。</p>
       </div>
@@ -78,6 +79,15 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     <!-- 2 標題與風格 -->
     <div class="pane space-y-4 hidden" data-p="1">
       <div class="card"><div class="h">設計模板</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="tplSel"></div></div>
+      <div class="card"><div class="h">🎉 節日模板（春節 / 三節 / 聖誕 / 跨年）</div><div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="holSel"></div></div>
+      <div class="card space-y-3">
+        <div class="h">⭐ 我的模板（<span id="tplCount">0</span>）</div>
+        <p class="text-xs text-neutral-400">把目前的背景、文字、位置、濾鏡、相框、動畫設定整套存起來，下次一按就套用，也會加入隨機靈感。</p>
+        <div class="flex gap-2"><input type="text" id="tplName" placeholder="替模板取個名字（可留空）" maxlength="20"><button id="btnSaveTpl" class="chip whitespace-nowrap !border-amber-500 !text-amber-300">💾 儲存</button></div>
+        <p id="tplMsg" class="text-xs text-amber-300"></p>
+        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="myTpls"></div>
+        <p id="tplEmpty" class="text-xs text-neutral-500">還沒有儲存的模板。調整出喜歡的樣子後，按上方「💾 儲存」。</p>
+      </div>
       <div class="card space-y-3">
         <div class="h">文字內容</div>
         <div class="grid grid-cols-3 gap-2" id="layerSel">
@@ -145,12 +155,25 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
       <button id="mMake" class="w-full py-2 rounded-full bg-amber-500 text-neutral-950 font-semibold text-sm">🎬 生成影片</button>
       <p id="mStat" class="text-xs text-neutral-400">錄製需要和影片一樣長的時間，過程中請停留在此頁面，不要切換到別的程式。</p></div></div>
 
+    <!-- 7 隨機設定 -->
+    <div class="pane space-y-4 hidden" data-p="6">
+      <div class="card space-y-3"><div class="h">🎲 隨機靈感的範圍</div>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="rUp" checked class="accent-amber-500"> 使用「我的照片庫」裡上傳的照片</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="rTpl" checked class="accent-amber-500"> 使用「我的模板」</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="rHol" checked class="accent-amber-500"> 包含節日模板（春節 / 端午 / 中秋 / 聖誕…）</label>
+        <p class="text-xs text-neutral-500">有上傳照片時，約一半的機率會抽到你的照片。</p></div>
+      <div class="card space-y-3"><div class="h">✍️ 我的靈感語錄（目前 <span id="uQn">0</span> 句）</div>
+        <p class="text-xs text-neutral-400">一行一句，格式：<b class="text-amber-300">中文語錄 | 英文小標</b>（英文可省略）。這些句子會加入一般模板的隨機抽選（節日模板用自己的祝福語）。</p>
+        <textarea id="uQ" rows="6" placeholder="例如：&#10;慢慢來，比較快 | TAKE IT SLOW&#10;今天也要好好吃飯"></textarea>
+        <button id="btnAddQ" class="chip w-full">➕ 把目前畫面上的文字加入語錄庫</button></div>
+    </div>
+
     <!-- 4 特效與相框 -->
     <div class="pane space-y-4 hidden" data-p="3">
       <div class="card space-y-3">
         <div class="h">藝術色調濾鏡</div>
-        <div class="grid grid-cols-5 gap-2" id="fltSel">
-          <button class="chip" data-f="none">原色</button><button class="chip" data-f="film">底片暖</button><button class="chip" data-f="morandi">莫蘭迪</button><button class="chip" data-f="bw">黑白</button><button class="chip" data-f="sunset">金霞</button>
+        <div class="grid grid-cols-4 gap-2" id="fltSel">
+          <button class="chip" data-f="none">原色</button><button class="chip" data-f="film">底片暖</button><button class="chip" data-f="morandi">莫蘭迪</button><button class="chip" data-f="bw">黑白</button><button class="chip" data-f="sunset">金霞</button><button class="chip" data-f="cny">喜慶紅</button><button class="chip" data-f="xmas">聖誕</button><button class="chip" data-f="moon">月夜藍</button>
         </div>
         <div><label class="l row"><span>背景暗度</span><span id="vOv"></span></label><input type="range" id="inpOv" min="0" max="80"></div>
         <div><label class="l row"><span>暗角 Vignette</span><span id="vVg"></span></label><input type="range" id="inpVg" min="0" max="100"></div>
@@ -159,6 +182,7 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
         <div class="grid grid-cols-2 gap-2" id="frmSel">
           <button class="chip" data-r="none">無邊框</button><button class="chip" data-r="fineLine">法式金細線框</button>
           <button class="chip" data-r="polaroid">拍立得框</button><button class="chip" data-r="editorial">雜誌加強框</button>
+          <button class="chip" data-r="festive">節慶金雙線框</button>
         </div></div>
     </div>
   </div>
@@ -170,10 +194,11 @@ label.l{display:block;font-size:11px;color:#a3a3a3;margin-bottom:4px}
     <div class="px-5 py-4 border-b border-neutral-800 text-xl font-bold text-amber-400">📖 使用說明（照著做就會了）</div>
     <div class="flex-1 overflow-y-auto p-4 space-y-3 text-[17px] leading-relaxed">
       <div class="gs"><b>1</b><div><div class="font-bold text-amber-300">選一張背景照片</div>點上方「🖼️ 背景圖片與儲存」，點一張小圖就會換。想用自己的照片，按「⬆ 上傳照片」。</div></div>
-      <div class="gs"><b>2</b><div><div class="font-bold text-amber-300">選樣式、改文字</div>點「✍️ 標題與風格」，先點一個「設計模板」，再在「文字內容」框裡改成想說的話。可以改字的大小和顏色。</div></div>
+      <div class="gs"><b>2</b><div><div class="font-bold text-amber-300">選樣式、改文字</div>點「✍️ 標題與風格」，先點一個「設計模板」或「節日模板」，再在「文字內容」框裡改成想說的話。可以改字的大小和顏色。</div></div>
       <div class="gs"><b>3</b><div><div class="font-bold text-amber-300">移動文字的位置</div>直接用手指<b style="display:inline;background:none;color:#fbbf24;width:auto;height:auto"> 按住圖上的文字不放，再拖到想要的地方</b>，放開就固定了。弄亂了可以到「📍 圖片與位置微調」按「重設文字位置」。</div></div>
       <div class="gs"><b>4</b><div><div class="font-bold text-amber-300">放大、移動照片</div>到「📍 圖片與位置微調」，拉「圖片縮放」可以把照片放大，拉「水平」「垂直」可以移動照片，找到最好看的位置。</div></div>
-      <div class="gs" style="background:#3b2a12;border:1px solid #f59e0b"><b>5</b><div><div class="font-bold text-amber-300">🎞️ 新功能：做成會動的圖（GIF）</div>點「🎞️ 做成會動的圖」。可以選下雪、花瓣飄落、星光閃爍等效果，按「▶ 預覽動畫」先看看，滿意再按「🎞️ 生成 GIF」，等一下就好了。想配音樂的話，改用旁邊的「🎵 加音樂」（會做成影片）。傳 LINE 給親友特別有感覺！</div></div>
+      <div class="gs" style="background:#3b2a12;border:1px solid #f59e0b"><b>5</b><div><div class="font-bold text-amber-300">🎞️ 做成會動的圖（GIF）</div>點「🎞️ 做成會動的圖」。可以選下雪、花瓣飄落、星光閃爍等效果，按「▶ 預覽動畫」先看看，滿意再按「🎞️ 生成 GIF」，等一下就好了。想配音樂的話，改用旁邊的「🎵 加音樂」（會做成影片）。傳 LINE 給親友特別有感覺！</div></div>
+      <div class="gs" style="background:#3b2a12;border:1px solid #f59e0b"><b>⭐</b><div><div class="font-bold text-amber-300">存自己的模板、擴充隨機靈感</div>在「✍️ 標題與風格」裡按「💾 儲存」，可以把做好的樣子存起來。到「🎲 隨機設定」可以加入自己的語錄，你上傳的照片和模板也會被「隨機靈感」抽到。</div></div>
       <div class="gs"><b>6</b><div><div class="font-bold text-amber-300">存起來</div><b style="display:inline;background:none;color:#fbbf24;width:auto;height:auto">靜態圖</b>按右上或畫面下方的「匯出」。手機會跳出一張大圖，<b style="display:inline;background:none;color:#fbbf24;width:auto;height:auto">用手指按住那張圖不放</b>，選「儲存圖片」或「下載圖片」就存進相簿了。</div></div>
       <div class="text-sm text-neutral-400 px-1">小提醒：不知道怎麼辦時，按左下角「隨機靈感 ✦」，會自動幫你配好一張。</div>
     </div>
@@ -187,39 +212,70 @@ const U=id=>`https://images.unsplash.com/photo-${id}?q=80&w=1000&auto=format&fit
 const PHOTOS=[["靜謐陽光","1507525428034-b723cf961d3e"],["晨光咖啡","1495474472287-4d71bcdd2085"],["柔光光影","1513836279014-a89f7a76ae86"],["深邃海浪","1505118380757-91f5f5632de0"],["極簡植物影","1497250681960-ef046c08a56e"],["沉靜藝術建築","1513694203232-719a280e022f"],["日落彩雲","1534447677768-be436bb09401"],["溫潤木質細節","1517646287270-a5a9ca602e5c"],["寧靜雪山峰","1486870591958-9b9d0d1dda99"],["莫蘭迪抽象花","1579783900882-c0d3dad7b119"]].map(p=>({name:p[0],url:U(p[1])}));
 const BGS=PHOTOS;
 const bgUrl=i=>BGS[i].url;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 const TPL=[
-{id:"editorial",name:"雜誌封面風",bg:0,filter:"film",ov:35,frame:"editorial",layers:[
+{id:"editorial",name:"雜誌封面風",bg:0,filter:"film",ov:35,frame:"editorial",zi:1,ei:0,layers:[
 {text:"MORNING\nREFLECTIONS",x:400,y:320,fontSize:52,color:"#FFFFFF",fontFamily:"'Cinzel', serif",letterSpacing:8,align:"center",shadow:"soft"},
 {text:"願你今日沉靜而有力量，擁抱晨光",x:400,y:560,fontSize:26,color:"#E8E6E1",fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"soft"},
 {text:"ISSUE NO. 08 ‧ GOOD MORNING",x:400,y:880,fontSize:16,color:"#C5A059",fontFamily:"'Montserrat', sans-serif",letterSpacing:6,align:"center",shadow:"none"}]},
-{id:"film",name:"極簡底片風格",bg:1,filter:"film",ov:25,frame:"fineLine",layers:[
+{id:"film",name:"極簡底片風格",bg:1,filter:"film",ov:25,frame:"fineLine",zi:0,ei:1,layers:[
 {text:"歲月靜好 ‧ 心安即是歸處",x:400,y:440,fontSize:36,color:"#F8F9FA",fontFamily:"'Noto Serif TC', serif",letterSpacing:6,align:"center",shadow:"soft"},
 {text:"CHASE THE LIGHT AND BE THE LIGHT",x:400,y:520,fontSize:16,color:"#C5A059",fontFamily:"'Cormorant Garamond', serif",letterSpacing:8,align:"center",shadow:"none"},
 {text:"2026.11.08 ‧ WARM REGARDS",x:400,y:860,fontSize:14,color:"#A3A3A3",fontFamily:"'Montserrat', sans-serif",letterSpacing:5,align:"center",shadow:"none"}]},
-{id:"polaroid",name:"拍立得時髦記憶",bg:4,filter:"morandi",ov:15,frame:"polaroid",layers:[
+{id:"polaroid",name:"拍立得時髦記憶",bg:4,filter:"morandi",ov:15,frame:"polaroid",zi:0,ei:1,layers:[
 {text:"保持熱愛 ‧ 奔赴山海",x:400,y:420,fontSize:38,color:"#212529",fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"none"},
 {text:"FIND BEAUTY IN EVERY SINGLE DAY",x:400,y:490,fontSize:15,color:"#666666",fontFamily:"'Cormorant Garamond', serif",letterSpacing:6,align:"center",shadow:"none"},
 {text:"— 獻給美好的一天 —",x:400,y:820,fontSize:18,color:"#888888",fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"none"}]},
-{id:"zen",name:"禪意莫蘭迪",bg:3,filter:"sunset",ov:45,frame:"none",layers:[
+{id:"zen",name:"禪意莫蘭迪",bg:3,filter:"sunset",ov:45,frame:"none",zi:0,ei:1,br:1,layers:[
 {text:"心寬路就寬\n平安便是福",x:400,y:400,fontSize:44,color:"#FFFFFF",fontFamily:"'Noto Serif TC', serif",letterSpacing:8,align:"center",shadow:"glow"},
 {text:"PEACEFUL MIND ‧ ABUNDANT LIFE",x:400,y:540,fontSize:16,color:"#FDE68A",fontFamily:"'Cinzel', serif",letterSpacing:6,align:"center",shadow:"none"},
 {text:"祝福您今日萬事順遂",x:400,y:860,fontSize:18,color:"#E2E8F0",fontFamily:"'Noto Sans TC', sans-serif",letterSpacing:4,align:"center",shadow:"soft"}]}];
+
+// 節日模板（點選時保留目前背景；隨機時會配隨機背景）
+const HL=(m,e,s,c1,c2)=>[
+{text:m,x:400,y:400,fontSize:54,color:c1,fontFamily:"'Noto Serif TC', serif",letterSpacing:10,align:"center",shadow:"soft"},
+{text:e,x:400,y:540,fontSize:18,color:c2,fontFamily:"'Cinzel', serif",letterSpacing:7,align:"center",shadow:"none"},
+{text:s,x:400,y:860,fontSize:18,color:c2,fontFamily:"'Noto Serif TC', serif",letterSpacing:4,align:"center",shadow:"soft"}];
+const HOL=[
+{id:"cny",name:"🧧 春節 ‧ 新春吉祥",bg:6,filter:"cny",ov:30,frame:"festive",zi:0,ei:1,hol:1,part:"dust",
+ layers:HL("新春吉祥\n萬事如意","HAPPY LUNAR NEW YEAR","祝福您與家人 ‧ 新年行大運","#F7D774","#FDE9A8"),
+ qs:[["新春吉祥 ‧ 萬事如意","HAPPY LUNAR NEW YEAR"],["恭喜發財 ‧ 財源廣進","WISHING YOU PROSPERITY"],["歲歲平安 ‧ 年年有餘","PEACE AND ABUNDANCE"],["闔家平安 ‧ 幸福安康","HEALTH AND HAPPINESS"]]},
+{id:"lantern",name:"🏮 元宵 ‧ 團圓",bg:7,filter:"cny",ov:40,frame:"festive",zi:0,ei:1,hol:1,part:"dust",
+ layers:HL("元宵快樂\n團圓美滿","HAPPY LANTERN FESTIVAL","花燈映月 ‧ 福氣滿滿","#FFD98A","#FDE9A8"),
+ qs:[["元宵快樂 ‧ 團圓美滿","HAPPY LANTERN FESTIVAL"],["花燈映月 ‧ 福氣滿滿","LIGHT UP THE NIGHT"]]},
+{id:"dragon",name:"🐲 端午 ‧ 粽享幸福",bg:3,filter:"film",ov:40,frame:"fineLine",zi:0,ei:1,hol:1,part:"dust",
+ layers:HL("端午安康\n粽享幸福","HAPPY DRAGON BOAT FESTIVAL","艾草香 ‧ 平安到","#E8F5E9","#C5E1A5"),
+ qs:[["端午安康 ‧ 粽享幸福","HAPPY DRAGON BOAT FESTIVAL"],["五月五日 ‧ 平安順心","WISHING YOU PEACE AND JOY"]]},
+{id:"moon",name:"🌕 中秋 ‧ 花好月圓",bg:2,filter:"moon",ov:40,frame:"fineLine",zi:0,ei:1,hol:1,part:"star",
+ layers:HL("花好月圓\n中秋快樂","HAPPY MID-AUTUMN FESTIVAL","月圓人團圓 ‧ 闔家幸福","#FFF3C4","#FDE68A"),
+ qs:[["花好月圓 ‧ 中秋快樂","HAPPY MID-AUTUMN FESTIVAL"],["但願人長久 ‧ 千里共嬋娟","UNDER THE SAME MOON"]]},
+{id:"xmas",name:"🎄 聖誕節",bg:8,filter:"xmas",ov:30,frame:"festive",zi:0,ei:1,hol:1,part:"snow",
+ layers:HL("聖誕快樂\n平安喜樂","MERRY CHRISTMAS","願你被愛與溫暖圍繞","#FFFFFF","#FDE68A"),
+ qs:[["聖誕快樂 ‧ 平安喜樂","MERRY CHRISTMAS"],["願溫暖與愛 ‧ 圍繞著你","WARM WISHES AND LOVE"]]},
+{id:"newyear",name:"🎆 跨年 ‧ 新年快樂",bg:5,filter:"film",ov:40,frame:"editorial",zi:0,ei:1,hol:1,part:"star",
+ layers:HL("新年快樂\n展開嶄新篇章","HAPPY NEW YEAR","辭舊迎新 ‧ 萬象更新","#FFFFFF","#C5A059"),
+ qs:[["新年快樂 ‧ 展開嶄新篇章","HAPPY NEW YEAR"],["辭舊迎新 ‧ 萬象更新","A FRESH START"]]}];
+HOL.forEach(t=>{t.layers[0].fontSize=50});
+const ALL=TPL.concat(HOL);
+const GEN=[["早安 ‧ 願你今天心情美好","GOOD MORNING, BEAUTIFUL DAY"],["心寬路就寬 ‧ 平安便是福","PEACEFUL MIND"],["保持熱愛 ‧ 奔赴山海","FIND BEAUTY IN EVERY DAY"],["歲月靜好 ‧ 心安即是歸處","CHASE THE LIGHT"],["慢慢來 ‧ 比較快","TAKE IT SLOW"],["願你被這個世界溫柔以待","BE KIND TO YOURSELF"],["日日是好日","EVERY DAY IS A GOOD DAY"],["平安喜樂 ‧ 萬事順心","WISHING YOU JOY"]];
 const DEFY=[420,520,860];
 
-let bg=new Image(),filter='film',ov=30,vg=40,frame='editorial',layer=0,exporting=false;
-let img={s:100,x:0,y:0},layers=[],curTpl=0;
+let bg=new Image(),curBgUrl='',filter='film',ov=30,vg=40,frame='editorial',layer=0,exporting=false;
+let img={s:100,x:0,y:0},layers=[],curZi=0,curEi=1;
 let drag=-1,dx=0,dy=0;
 let anim={t:null,fx:"none",zoom:false,glow:false,p:"none",dis:"none",quake:false,spd:"xslow",drift:false,sweep:false};
 
-function setBg(src){const im=new Image();im.crossOrigin='anonymous';
-  im.onload=()=>{bg=im;draw()};im.src=src}
+function setBg(src){curBgUrl=src;const im=new Image();im.crossOrigin='anonymous';
+  im.onload=()=>{if(curBgUrl!==src)return;bg=im;draw()};im.src=src}
 function pickBg(i){setBg(bgUrl(i))}
 
-function applyTpl(i,randomBg,keepBg){
-  const t=TPL[i];curTpl=i;layers=JSON.parse(JSON.stringify(t.layers));filter=t.filter;ov=t.ov;frame=t.frame;
-  const b=randomBg?Math.floor(Math.random()*BGS.length):t.bg;
-  if(!keepBg)setBg(bgUrl(b));syncAll();return b}
+// 套用模板；bgo 有給才換背景（物件需有 url）
+function applyTpl(t,bgo){
+  curZi=t.zi??0;curEi=t.ei??1;layers=JSON.parse(JSON.stringify(t.layers));filter=t.filter;ov=t.ov;frame=t.frame;
+  if(t.part)$('gPart').value=t.part;
+  if(bgo)setBg(bgo.url);syncAll()}
 
 function syncAll(){
   $('inpOv').value=ov;$('vOv').textContent=ov+'%';$('inpVg').value=vg;$('vVg').textContent=vg+'%';
@@ -231,28 +287,80 @@ function syncLayer(){const l=layers[layer];if(!l)return;
   $('inpAlign').value=l.align;$('inpShadow').value=l.shadow;
   document.querySelectorAll('#layerSel .chip').forEach(b=>b.classList.toggle('on',+b.dataset.l===layer));draw()}
 
-// ---------- IndexedDB ----------
+// ---------- IndexedDB（photos：我的照片；tpls：我的模板）----------
 let db=null;
-function openDB(){return new Promise(res=>{try{const q=indexedDB.open('greetingDB',1);
-  q.onupgradeneeded=()=>q.result.createObjectStore('photos',{keyPath:'id',autoIncrement:true});
-  q.onsuccess=()=>{db=q.result;res(true)};q.onerror=()=>res(false)}catch(e){res(false)}})}
-const tx=(m)=>db.transaction('photos',m).objectStore('photos');
-function dbAll(){return new Promise(res=>{if(!db)return res([]);const q=tx('readonly').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>res([])})}
-function dbAdd(url){return new Promise(res=>{if(!db)return res();const q=tx('readwrite').add({url,t:Date.now()});q.onsuccess=()=>res();q.onerror=()=>res()})}
-function dbDel(id){return new Promise(res=>{const q=tx('readwrite').delete(id);q.onsuccess=()=>res();q.onerror=()=>res()})}
-let mine=[];
+function openDB(){return new Promise(res=>{try{const q=indexedDB.open('greetingDB',2);
+  q.onupgradeneeded=()=>{const d=q.result;
+    if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos',{keyPath:'id',autoIncrement:true});
+    if(!d.objectStoreNames.contains('tpls'))d.createObjectStore('tpls',{keyPath:'id',autoIncrement:true})};
+  q.onsuccess=()=>{db=q.result;res(true)};q.onerror=()=>res(false);q.onblocked=()=>res(false)}catch(e){res(false)}})}
+const tx=(s,m)=>db.transaction(s,m).objectStore(s);
+function dbAll(s){return new Promise(res=>{if(!db)return res([]);try{const q=tx(s,'readonly').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>res([])}catch(e){res([])}})}
+function dbAdd(s,o){return new Promise(res=>{if(!db)return res(false);try{const q=tx(s,'readwrite').add(o);q.onsuccess=()=>res(true);q.onerror=()=>res(false)}catch(e){res(false)}})}
+function dbDel(s,id){return new Promise(res=>{if(!db)return res();try{const q=tx(s,'readwrite').delete(id);q.onsuccess=()=>res();q.onerror=()=>res()}catch(e){res()}})}
+let mine=[],mineT=[];
 async function renderMine(){
-  mine=(await dbAll()).reverse();
+  mine=(await dbAll('photos')).reverse();
   $('myEmpty').style.display=mine.length?'none':'block';
   $('myGallery').innerHTML=mine.map((p,i)=>`<div class="relative aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer">
    <img src="${p.url}" class="w-full h-full object-cover" onclick="setBg(mine[${i}].url)">
    <button onclick="delMine(${p.id})" class="absolute top-0 right-0 bg-black/70 text-white text-[10px] px-1.5 rounded-bl">✕</button></div>`).join('')}
-async function delMine(id){await dbDel(id);renderMine()}
+async function delMine(id){await dbDel('photos',id);renderMine()}
 function onUpload(file){
   const rd=new FileReader();rd.onload=e=>{const im=new Image();im.onload=async()=>{
     const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');
     c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-    const url=c.toDataURL('image/jpeg',.88);await dbAdd(url);await renderMine();setBg(url);img={s:100,x:0,y:0};syncImg()};im.src=e.target.result};rd.readAsDataURL(file)}
+    const url=c.toDataURL('image/jpeg',.88);await dbAdd('photos',{url,t:Date.now()});await renderMine();setBg(url);img={s:100,x:0,y:0};syncImg()};im.src=e.target.result};rd.readAsDataURL(file)}
+
+// ---------- 我的模板 ----------
+const GS=['gFx','gDur','gFps','gW','gPart','gSpd','gDis'],GC=['gQuake','gZoom','gDrift','gSweep','gGlow'];
+function snap(name,thumb){const g={};GS.forEach(k=>g[k]=$(k).value);GC.forEach(k=>g[k]=$(k).checked);
+  return{name,thumb,url:curBgUrl,filter,ov,vg,frame,img:{...img},zi:curZi,ei:curEi,layers:JSON.parse(JSON.stringify(layers)),g,t:Date.now()}}
+function loadSaved(s){
+  filter=s.filter;ov=s.ov;vg=s.vg;frame=s.frame;img={...s.img};layers=JSON.parse(JSON.stringify(s.layers));layer=0;curZi=s.zi??0;curEi=s.ei??1;
+  Object.entries(s.g||{}).forEach(([k,v])=>{const e=$(k);if(!e)return;if(typeof v==='boolean')e.checked=v;else e.value=v});
+  setBg(s.url);syncAll();syncImg()}
+async function renderTpls(){
+  mineT=(await dbAll('tpls')).reverse();
+  $('tplCount').textContent=mineT.length;$('tplEmpty').style.display=mineT.length?'none':'block';
+  $('myTpls').innerHTML=mineT.map((s,i)=>`<div class="relative rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800" onclick="loadSaved(mineT[${i}])">
+   <img src="${s.thumb||s.url}" class="w-full aspect-[4/5] object-cover"><div class="text-[11px] px-1 py-1 truncate">${esc(s.name)}</div>
+   <button onclick="event.stopPropagation();delTpl(${s.id})" class="absolute top-0 right-0 bg-black/70 text-white text-[10px] px-1.5 rounded-bl">✕</button></div>`).join('')}
+async function delTpl(id){if(!confirm('要刪除這個模板嗎？'))return;await dbDel('tpls',id);renderTpls()}
+async function saveTpl(){
+  if(!db){alert('此瀏覽器目前無法儲存（可能是無痕模式）。');return}
+  const nm=$('tplName').value.trim()||('我的模板 '+(mineT.length+1));
+  let thumb='';exporting=true;draw();
+  try{const c=document.createElement('canvas');c.width=200;c.height=250;c.getContext('2d').drawImage(cv,0,0,200,250);thumb=c.toDataURL('image/jpeg',.7)}catch(e){}
+  exporting=false;draw();
+  const ok=await dbAdd('tpls',snap(nm,thumb));
+  if(!ok){alert('儲存失敗，請再試一次。');return}
+  $('tplName').value='';await renderTpls();$('tplMsg').textContent='已儲存：'+nm}
+
+// ---------- 隨機靈感 ----------
+function userQ(){try{return(localStorage.getItem('userQuotes')||'').split('\n').map(s=>s.trim()).filter(Boolean).map(s=>s.split(/[|｜]/).map(x=>x.trim()))}catch(e){return[]}}
+function saveQ(){try{localStorage.setItem('userQuotes',$('uQ').value)}catch(e){}$('uQn').textContent=userQ().length}
+function randomBg(){
+  if($('rUp').checked&&mine.length&&Math.random()<.5){return{name:'我的照片',url:pick(mine).url}}
+  return pick(BGS)}
+function fit(l,maxW){ctx.save();let s=l.fontSize;const ls=l.letterSpacing||0;
+  const w=()=>{ctx.font=`400 ${s}px ${l.fontFamily}`;return Math.max(...l.text.split('\n').map(t=>[...t].reduce((a,c)=>a+ctx.measureText(c).width+ls,0)))};
+  while(s>14&&w()>maxW)s--;ctx.restore();l.fontSize=s}
+function randomize(){
+  const pool=TPL.map(t=>({t}));
+  if($('rHol').checked)HOL.forEach(t=>pool.push({t}));
+  if($('rTpl').checked)mineT.forEach(s=>pool.push({s}));
+  const c=pick(pool);let url,name,txt;
+  if(c.s){loadSaved(c.s);url=c.s.thumb||c.s.url;name='⭐ '+c.s.name;txt=(c.s.layers[curZi]||c.s.layers[0]).text.replace(/\n/g,' ')}
+  else{const t=c.t,b=randomBg();applyTpl(t,b);img={s:100,x:0,y:0};
+    const q=pick(t.hol?t.qs:GEN.concat(userQ())),L=layers[curZi];
+    if(q[0]){L.text=(t.hol||t.br)?q[0].replace(' ‧ ','\n'):q[0];fit(L,680)}
+    if(q[1]&&layers[curEi]){layers[curEi].text=q[1];fit(layers[curEi],680)}
+    syncAll();syncImg();url=b.url;name=t.name+' ‧ '+b.name;txt=L.text.replace(/\n/g,' ')}
+  $('rndThumb').src=url;$('rndName').textContent=name;$('rndText').textContent=txt}
+function addQ(){
+  const z=(layers[curZi]?.text||'').replace(/\n/g,' ').trim(),e=(layers[curEi]?.text||'').replace(/\n/g,' ').trim();
+  if(!z)return;const t=$('uQ');t.value=(t.value.trim()?t.value.trim()+'\n':'')+z+(e?' | '+e:'');saveQ()}
 
 // ---------- 繪製 ----------
 function draw(){
@@ -286,7 +394,10 @@ function applyFilter(){
   if(filter==='film')f('rgba(245,158,11,.08)');
   else if(filter==='morandi')f('rgba(148,163,184,.12)');
   else if(filter==='bw'){try{const d=ctx.getImageData(0,0,W,H),a=d.data;for(let i=0;i<a.length;i+=4){const v=(a[i]+a[i+1]+a[i+2])/3;a[i]=a[i+1]=a[i+2]=v}ctx.putImageData(d,0,0)}catch(e){}}
-  else if(filter==='sunset'){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(239,68,68,.12)');g.addColorStop(1,'rgba(245,158,11,.15)');f(g)}}
+  else if(filter==='sunset'){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(239,68,68,.12)');g.addColorStop(1,'rgba(245,158,11,.15)');f(g)}
+  else if(filter==='cny')f('rgba(190,20,20,.22)');
+  else if(filter==='xmas'){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(185,28,28,.14)');g.addColorStop(1,'rgba(22,101,52,.22)');f(g)}
+  else if(filter==='moon')f('rgba(40,60,130,.22)')}
 function spaced(t,x,y,ls,al){
   ctx.textAlign=al;
   if(!ls){ctx.fillText(t,x,y);return}
@@ -297,6 +408,8 @@ function drawFrame(){ctx.save();
   if(frame==='fineLine'){ctx.strokeStyle='rgba(197,160,89,.6)';ctx.lineWidth=2;ctx.strokeRect(30,30,W-60,H-60)}
   else if(frame==='polaroid'){ctx.fillStyle='#F8F9FA';ctx.fillRect(0,0,W,24);ctx.fillRect(0,0,24,H);ctx.fillRect(W-24,0,24,H);ctx.fillRect(0,H-180,W,180)}
   else if(frame==='editorial'){ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(40,50);ctx.lineTo(40,H-50);ctx.moveTo(W-40,50);ctx.lineTo(W-40,H-50);ctx.stroke()}
+  else if(frame==='festive'){ctx.strokeStyle='rgba(247,215,116,.85)';ctx.fillStyle='rgba(247,215,116,.85)';ctx.lineWidth=3;ctx.strokeRect(24,24,W-48,H-48);ctx.lineWidth=1;ctx.strokeRect(38,38,W-76,H-76);
+    [[38,38],[W-38,38],[38,H-38],[W-38,H-38]].forEach(([x,y])=>ctx.fillRect(x-6,y-6,12,12))}
   ctx.restore()}
 
 // ---------- 拖曳 ----------
@@ -444,7 +557,9 @@ function bindGif(){bindMusic();$('gLine').onclick=()=>{$('gDur').value='4';$('gF
 function init(){
   $('bgGallery').innerHTML=BGS.map((b,i)=>`<div onclick="pickBg(${i})" title="${b.name}" class="aspect-square rounded-lg overflow-hidden border border-neutral-700 hover:border-amber-400 cursor-pointer bg-neutral-800">
     <img crossorigin="anonymous" loading="lazy" src="${b.url}" alt="${b.name}" class="w-full h-full object-cover"></div>`).join('');
-  $('tplSel').innerHTML=TPL.map((t,i)=>`<button onclick="applyTpl(${i},false,true)" class="chip text-left h-16"><div class="font-semibold">${t.name}</div><div class="text-[10px] text-neutral-500 uppercase">${t.id}</div></button>`).join('');
+  const tb=(t,i)=>`<button onclick="applyTpl(ALL[${i}])" class="chip text-left h-16"><div class="font-semibold">${t.name}</div><div class="text-[10px] text-neutral-500 uppercase">${t.id}</div></button>`;
+  $('tplSel').innerHTML=TPL.map((t,i)=>tb(t,i)).join('');
+  $('holSel').innerHTML=HOL.map((t,i)=>tb(t,TPL.length+i)).join('');
   document.querySelectorAll('#tabs .tab').forEach(b=>b.onclick=()=>{showTab(+b.dataset.t);b.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'})});
   document.querySelectorAll('#layerSel .chip').forEach(b=>b.onclick=()=>{layer=+b.dataset.l;syncLayer()});
   document.querySelectorAll('#fltSel .chip').forEach(b=>b.onclick=()=>{filter=b.dataset.f;mark('#fltSel','f',filter);draw()});
@@ -458,8 +573,10 @@ function init(){
   $('btnResetImg').onclick=()=>{img={s:100,x:0,y:0};syncImg()};
   $('btnResetPos').onclick=()=>{layers.forEach((l,i)=>{l.x=W/2;l.y=DEFY[i]});draw()};
   $('bgUpload').onchange=e=>{if(e.target.files[0])onUpload(e.target.files[0]);e.target.value=''};
-  $('btnRandom').onclick=()=>{const i=Math.floor(Math.random()*TPL.length),b=applyTpl(i,true);img={s:100,x:0,y:0};syncImg();
-    $('rndThumb').src=BGS[b].url;$('rndName').textContent=TPL[i].name+' ‧ '+BGS[b].name;$('rndText').textContent=TPL[i].layers[0].text.replace(/\n/g,' ')};
+  $('btnRandom').onclick=randomize;
+  $('btnSaveTpl').onclick=saveTpl;$('btnAddQ').onclick=addQ;
+  try{$('uQ').value=localStorage.getItem('userQuotes')||''}catch(e){}
+  $('uQ').addEventListener('input',saveQ);$('uQn').textContent=userQ().length;
   $('btnDownload').onclick=()=>{exporting=true;draw();
     try{cv.toBlob(bl=>{if(!bl){alert('匯出失敗，請重試。');return}saveBlob(bl)},'image/png')}
     catch(e){alert('目前的背景圖片不允許匯出（跨網域限制）。請按 Ctrl+F5 強制重新整理後再試，或改用上傳的照片。')}
@@ -468,9 +585,9 @@ function init(){
   cv.addEventListener('touchstart',e=>{const t=e.touches[0];down({clientX:t.clientX,clientY:t.clientY})},{passive:false});
   cv.addEventListener('touchmove',e=>{if(drag>=0){e.preventDefault();const t=e.touches[0];move({clientX:t.clientX,clientY:t.clientY})}},{passive:false});
   window.addEventListener('touchend',up);
-  applyTpl(0);syncImg();
+  applyTpl(TPL[0],{url:bgUrl(TPL[0].bg)});syncImg();
   $('rndThumb').src=BGS[0].url;$('rndName').textContent=TPL[0].name+' ‧ '+BGS[0].name;$('rndText').textContent=TPL[0].layers[0].text.replace(/\n/g,' ');
-  bindGif();openDB().then(renderMine)}
+  bindGif();openDB().then(()=>Promise.all([renderMine(),renderTpls()]))}
 window.onload=init;
 </script>
 </body>
