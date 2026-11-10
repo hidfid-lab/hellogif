@@ -33,20 +33,20 @@ button:hover{background:#15356a}button:focus-visible,input:focus-visible,select:
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script>
 // ===== 參數 =====
-const DEF={stuntMode:'random',probVTOL:20,probSpin:40,probArc:40,arcHeight:140,flightDuration:4.7,spinCount:3,patrolSpeedMin:2,patrolSpeedMax:4,smokeDensity:10,autoColor:true,gasColor:'gold',carModel:'sedan',trailGlow:true,textPassOpacity:0.85};
-let P={...DEF};const CARS=[['sedan','圓潤四門轎跑'],['coupe','流線雙門跑車'],['hatch','圓潤小型掀背'],['suv','圓潤休旅'],['spyder','🏎️ 敵篷超跑'],['toy','🧸 玩具超跑（小朋友款）'],['cart','🐂 阿公的牛車']],GASN=[['gold','🟡 金色'],['blue','🔵 霓虹藍'],['white','⚪ 純白'],['orange','🟠 火焰橘'],['purple','🟣 魅影紫'],['green','🟢 螢光綠'],['car','🎨 跟隨車色'],['pink','🌸 粉紅色'],['tiffany','💎 Tiffany 綠'],['rainbow','🌈 彩虹']];
+const DEF={stuntMode:'random',probVTOL:20,probSpin:40,probArc:40,probRamp:15,rampRolls:1,hangTime:1.5,landTime:3,arcHeight:140,flightDuration:4.7,spinCount:3,patrolSpeedMin:2,patrolSpeedMax:4,smokeDensity:10,autoColor:true,gasColor:'rainbow',carModel:'random',wrapColor:'random',carSwap:'edge',trailGlow:true,textPassOpacity:0.85};
+let P={...DEF};const CARS=[['random','🎲 隨機輪播'],['sedan','圓潤四門轎跑'],['coupe','流線雙門跑車'],['hatch','圓潤小型掀背'],['suv','圓潤休旅'],['spyder','🏎️ 敮篷超跑'],['toy','🧸 玩具超跑（小朋友款）'],['cart','🐂 阿公的牛車']],GASN=[['gold','🟡 金色'],['blue','🔵 霓虹藍'],['white','⚪ 純白'],['orange','🟠 火焰橘'],['purple','🟣 魅影紫'],['green','🟢 螢光綠'],['car','🎨 跟隨車色'],['pink','🌸 粉紅色'],['tiffany','💎 Tiffany 綠'],['rainbow','🌈 彩虹']];
 const GLB_URL=''; // 放入通用電動轎跑模型路徑，例如 './models/ev.glb'；留空則使用內建程式生成車體
 const G=520, BASE=100; // 等效重力 px/s²、1x 巡航速度 px/s
-const SL=[['probVTOL','直升機機率 %',0,100,1],['probSpin','3D 空翻機率 %',0,100,1],['probArc','拋物線機率 %',0,100,1],['arcHeight','飛躍最大高度 px',50,300,1],['flightDuration','飛行總耗時 s',1,8,.1],['spinCount','空中旋轉圈數',0,5,1],['patrolSpeedMin','巡航速度下限 x',.2,10,.1],['patrolSpeedMax','巡航速度上限 x',.2,10,.1],['smokeDensity','噴霧氣體密度',1,20,1],['textPassOpacity','穿越標題透明度',.2,1,.05]];
+const SL=[['probVTOL','直升機機率 %',0,100,1],['probSpin','3D 空翻機率 %',0,100,1],['probArc','拋物線機率 %',0,100,1],['probRamp','隱形坡道機率 %',0,100,1],['rampRolls','坡道側翻圈數',0,4,1],['hangTime','倒掛停留時間 s',0,6,.1],['landTime','緩慢降落耗時 s',1,8,.1],['arcHeight','飛躍最大高度 px',50,300,1],['flightDuration','飛行總耗時 s',1,8,.1],['spinCount','空中旋轉圈數',0,5,1],['patrolSpeedMin','巡航速度下限 x',.2,10,.1],['patrolSpeedMax','巡航速度上限 x',.2,10,.1],['smokeDensity','噴霧氣體密度',1,20,1],['textPassOpacity','穿越標題透明度',.2,1,.05]];
 const MODES=[['random','🎲 隨機自動輪播'],['VTOL','🚁 直升機垂直升降'],['Spin','🌀 3D 空翻'],['Arc','🌈 拋物線弧形']];
-const panel=document.getElementById('panel');
-panel.innerHTML='<details open><summary>🎛️ 展演控制面板</summary><div class="btns"><button id="bPause">⏸️ 暫停/繼續 動畫</button><button id="bGo">🚀 手動表演特技</button><button id="bReset">🔄 恢復預設值</button><button id="bCopy">📋 複製 JSON 設定檔</button><button id="bColor">🎨 隨機換色</button></div><label class="r">飛行特技模式<select id="stuntMode">'+MODES.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label><label class="r">車款<select id="carModel">'+CARS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label><label class="r">噴霧色板<select id="gasColor">'+GASN.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label>'+SL.map(s=>`<label class="r">${s[1]}<output id="o_${s[0]}"></output><input type="range" id="${s[0]}" min="${s[2]}" max="${s[3]}" step="${s[4]}"></label>`).join('')+'<label class="r chk"><input type="checkbox" id="autoColor">每次特技後自動改色</label><label class="r chk"><input type="checkbox" id="trailGlow">殘影／霓虹光暈</label><div class="r">目前膜色<output id="cname">珍珠白</output></div></details>';
+MODES.push(['Ramp','🛝 隱形坡道特技']);const panel=document.getElementById('panel');
+panel.innerHTML='<details open><summary>🎛️ 展演控制面板</summary><div class="btns"><button id="bPause">⏸️ 暫停/繼續 動畫</button><button id="bGo">🚀 手動表演特技</button><button id="bReset">🔄 恢復預設值</button><button id="bCopy">📋 複製 JSON 設定檔</button><button id="bColor">🎨 隨機換色</button></div><label class="r">飛行特技模式<select id="stuntMode">'+MODES.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label><label class="r">車款<select id="carModel">'+CARS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label><label class="r">換車時機<select id="carSwap"><option value="edge">🚗 駛出畫面邊緣時換</option><option value="land">⬇️ 落地瞬間換</option></select></label><label class="r">膜色<select id="wrapColor"></select></label><label class="r">噴霧色板<select id="gasColor">'+GASN.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')+'</select></label>'+SL.map(s=>`<label class="r">${s[1]}<output id="o_${s[0]}"></output><input type="range" id="${s[0]}" min="${s[2]}" max="${s[3]}" step="${s[4]}"></label>`).join('')+'<label class="r chk"><input type="checkbox" id="autoColor">每次特技後自動改色</label><label class="r chk"><input type="checkbox" id="trailGlow">殘影／霓虹光暈</label><div class="r">目前膜色<output id="cname">珍珠白</output></div></details>';
 function sync(){for(const k in P){const e=document.getElementById(k);if(!e)continue;e.type==='checkbox'?e.checked=P[k]:e.value=P[k];const o=document.getElementById('o_'+k);if(o)o.textContent=P[k]}}
-panel.addEventListener('input',e=>{const t=e.target;if(!(t.id in P))return;P[t.id]=t.type==='checkbox'?t.checked:t.type==='range'?+t.value:t.value;if(t.id==='carModel')showModel();sync()});
+panel.addEventListener('input',e=>{const t=e.target;if(!(t.id in P))return;P[t.id]=t.type==='checkbox'?t.checked:t.type==='range'?+t.value:t.value;if(t.id==='carModel')showModel();if(t.id==='wrapColor'&&t.value!=='random')recolor(+t.value);sync()});
 sync();
 
 const help=document.getElementById('help');
-help.innerHTML='<h3>📖 使用說明</h3><ul><li><b>這是什麼</b>：浪人包膜的 3D 特技展演，車子在霓虹軌道上巡航，並隨機表演特技。</li><li><b>特技模式</b>：直升機＝垂直升降；3D 空翻＝空中翻轉（可調圈數）；拋物線＝弧形飛越。選「隨機自動輪播」會依三個機率自動表演。</li><li><b>機率滑桿</b>：只在隨機模式有效，三者會自動換算成比例。</li><li><b>🚀 手動表演特技</b>：馬上表演一次。<b>⏸️ 暫停/繼續</b>：凍結或恢復所有動畫。</li><li><b>車款</b>：轎跑、跑車、掀背、休旅、洞篷超跑、玩具超跑，還有阿公的牛車。</li><li><b>膜色</b>：每次特技後自動換色，也可按「🎨 隨機換色」手動換；可取消「自動改色」。</li><li><b>噴霧色板</b>：選氣體顏色，可跟隨車色或彩虹；密度越高氣體越濃。</li><li><b>氣體物理</b>：噴嘴固定在車身，推力＝重力＋加速度。上升強噴、緩降輕噴（仍向下），翻轉時噴向隨車身轉動，前後另有姿態噴嘴。</li><li><b>📋 複製 JSON</b>：匯出目前設定。<b>🔄 恢復預設值</b>：全部還原。</li><li><b>面板</b>：兩個按鈕固定在右下角，點一下展開、再點收起，同時只開一個，並且不會擋到車子的軌道。</li></ul>';
+help.innerHTML='<h3>📖 使用說明</h3><ul><li><b>這是什麼</b>：浪人包膜的 3D 特技展演，車子在霓虹軌道上巡航，並隨機表演特技。</li><li><b>特技模式</b>：直升機＝垂直升降；3D 空翻＝空中翻轉（可調圈數）；拋物線＝弧形飛越；隱形坡道＝沿隱形坡道爬升到車頂朝下倒掛半空、飛出後側翻再緩降。選「隨機自動輪播」會依三個機率自動表演。</li><li><b>機率滑桿</b>：只在隨機模式有效，各特技機率會自動換算成比例。隱形坡道可另調「倒掛停留時間」「緩慢降落耗時」「坡道側翻圈數」。</li><li><b>🚀 手動表演特技</b>：馬上表演一次。<b>⏸️ 暫停/繼續</b>：凍結或恢復所有動畫。</li><li><b>車款</b>：轎跑、跑車、掀背、休旅、敮篷超跑、玩具超跑，還有阿公的牛車。</li><li><b>膜色</b>：每次特技後自動換色，也可按「🎨 隨機換色」手動換；可取消「自動改色」。</li><li><b>噴霧色板</b>：選氣體顏色，可跟隨車色或彩虹；密度越高氣體越濃。</li><li><b>氣體物理</b>：噴嘴固定在車身，推力＝重力＋加速度。上升強噴、緩降輕噴（仍向下），翻轉時噴向隨車身轉動，前後另有姿態噴嘴。</li><li><b>📋 複製 JSON</b>：匯出目前設定。<b>🔄 恢復預設值</b>：全部還原。</li><li><b>面板</b>：兩個按鈕固定在右下角，點一下展開、再點收起，同時只開一個，並且不會擋到車子的軌道。</li></ul>';
 const sheetOf={tCtl:panel,tHelp:help};
 for(const id in sheetOf)document.getElementById(id).onclick=()=>{const on=!sheetOf[id].classList.contains('open');for(const k in sheetOf){sheetOf[k].classList.toggle('open',k===id&&on);document.getElementById(k).setAttribute('aria-expanded',String(k===id&&on))}};
 // ===== Three.js 場景 =====
@@ -81,8 +81,9 @@ const mats=[pearl,glass,dark,rimM,lamp,tail];
 // 包膜換色：名稱、色碼、金屬度、粗糙度、清漆（0 = 消光膜）
 const WRAPS=[['珍珠白',0xf6f8fc,.35,.22,1],['消光黑',0x15171c,.2,.65,0],['電光藍',0x1670ff,.5,.2,1],['熔岩橘',0xff5a14,.45,.25,1],['翡翠綠',0x0fa56a,.5,.22,1],['消光軍綠',0x4a5a3a,.2,.7,0],['魅影紫',0x7a3cff,.55,.2,1],['玫瑰金',0xe0a08a,.8,.25,1],['消光水泥灰',0x7d8590,.3,.6,0],['櫻花粉',0xff8fb8,.4,.25,1],['螢光黃',0xe8ff2a,.4,.25,1],['粉紅色',0xff5fa8,.4,.25,1],['Tiffany 綠',0x2fc9c0,.5,.22,1]];
 const cname=document.getElementById('cname'),wFrom=new T.Color(),wTo=new T.Color();let wi=0,wT=1,wF=[.35,.22,1],wTT=[.35,.22,1];
-function recolor(){
-  let n;do{n=Math.floor(Math.random()*WRAPS.length)}while(n===wi);wi=n;const w=WRAPS[n];
+document.getElementById('wrapColor').innerHTML='<option value="random">🎲 隨機換色</option>'+WRAPS.map((w,i)=>`<option value="${i}">${w[0]}</option>`).join('');sync();
+function recolor(k){
+  let n=k;if(n==null)do{n=Math.floor(Math.random()*WRAPS.length)}while(n===wi);wi=n;const w=WRAPS[n];
   wFrom.copy(pearl.color);wTo.setHex(w[1]);wF=[pearl.metalness,pearl.roughness,pearl.clearcoat];wTT=[w[2],w[3],w[4]];wT=0;cname.textContent=w[0];
   const c=[Math.min(1,wTo.r+.25),Math.min(1,wTo.g+.25),Math.min(1,wTo.b+.25)]; // 換膜閃光粒子
   for(let i=0;i<70;i++){const a=Math.random()*Math.PI*2,s=80+Math.random()*180;emit(car.x+(Math.random()-.5)*60,railY+16+car.h+(Math.random()-.5)*20,Math.cos(a)*s,Math.sin(a)*s,c,.8)}
@@ -171,7 +172,10 @@ function buildCart(){
   g.position.x=-4;return g;
 }
 const procs={};for(const k in MODELS){procs[k]=buildCar(MODELS[k]);proc.add(procs[k])}procs.cart=buildCart();proc.add(procs.cart);
-function showModel(){for(const k in procs)procs[k].visible=k===P.carModel}showModel();
+let curCar='sedan';
+function showModel(){if(P.carModel!=='random')curCar=P.carModel;for(const k in procs)procs[k].visible=k===curCar}
+function nextCar(burst){const ks=Object.keys(procs).filter(k=>k!==curCar);curCar=ks[Math.floor(Math.random()*ks.length)];showModel();const c=gasCol();for(let i=0;i<(burst?50:0);i++){const a=Math.random()*6.28,s=60+Math.random()*160;emit(car.x+(Math.random()-.5)*70,railY+16+(Math.random()-.5)*20,Math.cos(a)*s,Math.sin(a)*s,c,.7)}}
+{const ks=Object.keys(procs);curCar=ks[Math.floor(Math.random()*ks.length)]}showModel();
 if(GLB_URL&&T.GLTFLoader)new T.GLTFLoader().load(GLB_URL,g=>{ // 載入外部 GLB：自動縮放為約 78px 長、車頭朝 +x，車漆材質套用珍珠白
   const m=g.scene;let b=new T.Box3().setFromObject(m),z=b.getSize(new T.Vector3());if(z.z>z.x)m.rotation.y=Math.PI/2;
   b.setFromObject(m);z=b.getSize(new T.Vector3());m.scale.setScalar(78/z.x);b.setFromObject(m);const c=b.getCenter(new T.Vector3());
@@ -199,45 +203,65 @@ function updP(dt){
 }
 
 // ===== 車輛狀態與特技 =====
+const effH=()=>Math.min(P.arcHeight,Math.max(60,railS-60)); // 高度上限：不超出畫面頂端
+const inZone=q=>{const w=innerWidth,mg=q==='Ramp'?Math.min(w*.35,effH()*.6+90):Math.min(w*.2,80);return car.x>=mg&&car.x<=w-mg}; // 特技只在畫面安全區內開始
 const sample=()=>{const a=Math.min(P.patrolSpeedMin,P.patrolSpeedMax),b=Math.max(P.patrolSpeedMin,P.patrolSpeedMax);return(a+Math.random()*(b-a))*BASE};
 const car={x:innerWidth*.3,h:0,dir:1,vx:0,vt:0,vy:0,pitch:0,roll:0,face:1,op:1};
-const st={mode:null,u:0,vx0:0,turn:3,auto:4};let paused=false;
+const st={mode:null,u:0,vx0:0,turn:3,auto:4,queue:null,needCar:false};let paused=false;
 layout();car.vt=sample();car.vx=car.vt;
 const hF=(m,u)=>{u=clamp(u);return m==='VTOL'?(u<.3?sm(u/.3):u>.7?1-sm((u-.7)/.3):1):4*u*(1-u)};
 function pitchOf(u){
   const m=st.mode;if(m==='VTOL')return 0;
-  if(m==='Arc'||P.spinCount===0){const e=.004,vy=(hF(m,u+e)-hF(m,u-e))/(2*e)*P.arcHeight/P.flightDuration;return car.dir*Math.atan2(vy,Math.abs(st.vx0)||1)}
+  if(m==='Arc'||P.spinCount===0){const e=.004,vy=(hF(m,u+e)-hF(m,u-e))/(2*e)*effH()/P.flightDuration;return car.dir*Math.atan2(vy,Math.abs(st.vx0)||1)}
   return -car.dir*2*Math.PI*P.spinCount*(.5-.5*Math.cos(Math.PI*clamp((u-.1)/.8)));
 }
+// 隱形坡道特技路徑：爬坡(0-.38) → 懸停半空(.38-.5) → 飛出翻轉緩降(.5-1)
+function rampAt(u){u=clamp(u);const H=effH(),R=Math.min(H*.6,Math.max(30,(railS-64)/2)),Dx=st.dxMax==null?R*1.6:st.dxMax,Hb=H*.2,n=P.rampRolls,f1=st.f1||.4,f2=st.f2||.6;
+  if(u<f1){const a=u/f1,f=Math.PI*(1-Math.pow(1-a,1.8));return{dx:R*Math.sin(f),h:R*(1-Math.cos(f)),ang:f,roll:0,thr:0,ph:0}}
+  if(u<f2){const b=(u-f1)/(f2-f1),s=Math.sin(2*Math.PI*b);return{dx:0,h:2*R+2.5*s,ang:Math.PI+.04*s,roll:0,thr:1,ph:1}}
+  const w=(u-f2)/(1-f2),q=clamp((w*st.tC-.25)/st.tRoll),e=.5-.5*Math.cos(Math.PI*q);
+  return{dx:-Dx*sm(w),h:2*R*(1-sm((w-.15)/.85))+Hb*Math.pow(Math.sin(Math.PI*w),2),ang:0,roll:Math.PI-(Math.PI+2*Math.PI*n)*e,thr:1,ph:2}}
+function rampAtOld2(u){u=clamp(u);const R=P.arcHeight*.6,Dx=st.dxMax==null?R*1.6:st.dxMax,Hb=P.arcHeight*.2,n=P.rampRolls;
+  if(u<.42){const a=u/.42,f=Math.PI*(1-Math.pow(1-a,1.8));return{dx:R*Math.sin(f),h:R*(1-Math.cos(f)),ang:f,roll:0,thr:0,ph:0}}
+  if(u<.55){const b=(u-.42)/.13,s=Math.sin(2*Math.PI*b);return{dx:0,h:2*R+2.5*s,ang:Math.PI+.04*s,roll:0,thr:1,ph:1}}
+  const w=(u-.55)/.45,q=clamp((w-.12)/.68),e=.5-.5*Math.cos(Math.PI*q);
+  return{dx:-Dx*sm(w),h:2*R*(1-sm((w-.15)/.85))+Hb*Math.pow(Math.sin(Math.PI*w),2),ang:0,roll:Math.PI-(Math.PI+2*Math.PI*n)*e,thr:1,ph:2}}
+function rampAtOld(u){u=clamp(u);const R=P.arcHeight*.8,Dx=R*1.4,Hb=P.arcHeight*.45,n=P.spinCount;
+  if(u<.38){const a=u/.38,f=Math.PI/2*(1-Math.pow(1-a,1.8));return{dx:R*Math.sin(f),h:R*(1-Math.cos(f)),ang:f,roll:0,thr:0}}
+  if(u<.5){const b=(u-.38)/.12,s=Math.sin(2*Math.PI*b);return{dx:R,h:R+2.5*s,ang:Math.PI/2+.06*s,roll:0,thr:1}}
+  const w=(u-.5)/.5,q=clamp((w-.1)/.7),e=.5-.5*Math.cos(Math.PI*q);
+  return{dx:R+Dx*sm(w),h:R*(1-sm((w-.2)/.8))+Hb*Math.pow(Math.sin(Math.PI*w),2),ang:Math.PI/2-(Math.PI/2+2*Math.PI*n)*e,roll:.8*Math.sin(2*Math.PI*q),thr:1}}
 function pick(){
   if(P.stuntMode!=='random')return P.stuntMode;
-  const w=[['VTOL',P.probVTOL],['Spin',P.probSpin],['Arc',P.probArc]],s=w.reduce((a,b)=>a+b[1],0);if(s<=0)return 'Arc';
+  const w=[['VTOL',P.probVTOL],['Spin',P.probSpin],['Arc',P.probArc],['Ramp',P.probRamp]],s=w.reduce((a,b)=>a+b[1],0);if(s<=0)return 'Arc';
   let r=Math.random()*s;for(const[m,v]of w){if((r-=v)<0)return m}return 'Arc';
 }
 function start(m){
-  if(st.mode)return;st.mode=m;st.u=0;car.dir=car.x>innerWidth/2?-1:1;
-  const room=(car.dir>0?innerWidth+40-car.x:car.x+40)/P.flightDuration;st.vx0=car.dir*Math.min(sample(),room);car.vt=st.vx0;
+  if(st.mode)return;st.mode=m;st.u=0;st.flip=false;st.dxMax=null;car.dir=car.x>innerWidth/2?-1:1;
+  const room=(car.dir>0?innerWidth+40-car.x:car.x+40)/P.flightDuration;st.vx0=car.dir*Math.min(sample(),room);car.vt=st.vx0;st.tRoll=1.4+.9*P.rampRolls;st.tC=Math.max(P.landTime,st.tRoll+.8);{const tA=P.flightDuration*.4;st.rdur=tA+P.hangTime+st.tC;st.f1=tA/st.rdur;st.f2=(tA+P.hangTime)/st.rdur}st.d0=car.dir;st.dxMax=Math.max(0,Math.min(effH()*.96,(car.dir>0?car.x+40:innerWidth+40-car.x)-4));
 }
 function stepCar(dt){
-  let ay=0,alpha=0,axA=0,m=st.mode,u=st.u;
+  let ay=0,alpha=0,axA=0,axW=0,thr=1,m=st.mode,u=st.u;
   if(!m){ // 靜止巡航
     st.turn-=dt;st.auto-=dt;
-    if(st.turn<=0||(car.x>innerWidth+40&&car.vt>0)||(car.x<-40&&car.vt<0)){car.vt=-Math.sign(car.vt||1)*sample();car.dir=Math.sign(car.vt);st.turn=2.5+Math.random()*3.5}
+    if(st.needCar){const de=car.x>innerWidth/2?1:-1;if(Math.sign(car.vt)!==de){car.vt=de*sample();car.dir=de}if(car.x>innerWidth+34||car.x<-34){nextCar(false);st.needCar=false}}
+    if((st.turn<=0&&!st.needCar)||(car.x>=innerWidth+39&&car.vt>0)||(car.x<=-39&&car.vt<0)){car.vt=-Math.sign(car.vt||1)*sample();car.dir=Math.sign(car.vt);st.turn=2.5+Math.random()*3.5}
     const pv0=car.vx;car.vx+=(car.vt-car.vx)*Math.min(1,dt*1.8);axA=dt>0?(car.vx-pv0)/dt*car.dir:0;
     car.h=0;car.vy=0;car.pitch=car.roll=0;
-    if(st.auto<=0)start(pick());
+    if(st.auto<=0&&!st.needCar&&!st.queue)st.queue=pick();if(st.queue&&inZone(st.queue)){const q=st.queue;st.queue=null;start(q)}
   }else{ // 特技飛行
-    u=st.u+=dt/P.flightDuration;
-    if(u>=1){st.mode=null;st.auto=3+Math.random()*4;if(P.autoColor)recolor();car.h=0;car.vy=0;car.pitch=car.roll=0;car.vx=st.vx0;car.vt=car.dir*sample();return{ay:0,alpha:0,axA:0}}
-    const e=.01,A=P.arcHeight,D=P.flightDuration,h0=hF(m,u),hp=hF(m,u+e),hm=hF(m,u-e);
+    u=st.u+=dt/(m==='Ramp'?st.rdur:P.flightDuration);
+    if(u>=1){st.mode=null;st.auto=3+Math.random()*4;if(P.autoColor&&P.wrapColor==='random')recolor();if(P.carModel==='random'){if(P.carSwap==='land')nextCar(true);else st.needCar=true}car.h=0;car.vy=0;car.pitch=car.roll=0;car.vx=m==='Ramp'?0:st.vx0;car.vt=car.dir*sample();return{ay:0,ax:0,alpha:0,axA:0}}
+    if(m==='Ramp'){const e=.004,Dd=st.rdur,pa=rampAt(u-e),pb=rampAt(u),pc=rampAt(u+e),e3=.01;car.h=pb.h;car.vy=(pc.h-pa.h)/(2*e*Dd);ay=(pc.h-2*pb.h+pa.h)/((e*Dd)**2);if(pb.ph>=2&&!st.flip){st.flip=true;car.dir=-st.d0;car.face=car.dir}car.vx=st.d0*(pc.dx-pa.dx)/(2*e*Dd);axW=st.d0*(pc.dx-2*pb.dx+pa.dx)/((e*Dd)**2);car.pitch=car.dir*pb.ang;car.roll=pb.roll;thr=pb.thr;alpha=0}else{
+    const e=.01,A=effH(),D=P.flightDuration,h0=hF(m,u),hp=hF(m,u+e),hm=hF(m,u-e);
     car.h=h0*A;car.vy=(hp-hm)/(2*e)*A/D;ay=(hp-2*h0+hm)/(e*e)*A/(D*D);
     car.vx=m==='VTOL'?st.vx0*(u<.5?1-sm(u/.25):sm((u-.75)/.25)):st.vx0;
     car.pitch=pitchOf(u);const e2=.01;alpha=(pitchOf(u+e2)-2*car.pitch+pitchOf(u-e2))/((e2*D)**2);
-    car.roll=m==='Spin'?.6*Math.sin(2*Math.PI*clamp((u-.1)/.8)):0;
+    car.roll=m==='Spin'?.6*Math.sin(2*Math.PI*clamp((u-.1)/.8)):0;}
   }
   const px=car.x;car.x=clamp(car.x+car.vx*dt,-40,innerWidth+40);
   inner.traverse(o=>{if(o.userData.wheel)o.rotation.z-=Math.abs(car.x-px)/(o.userData.r||7);else if(o.userData.leg!=null)o.rotation.z=Math.sin(car.x*.15+o.userData.leg)*.5});
-  return{ay,alpha,axA};
+  return{ay,alpha,axA,ax:axW,thr};
 }
 function emitAll(dt,k){
   if(dt<=0)return;const m=st.mode,u=st.u;
@@ -251,11 +275,11 @@ function emitAll(dt,k){
       emit(wx+px+(Math.random()-.5)*5,wy+py+(Math.random()-.5)*3,ex*s+(Math.random()-.5)*70+car.vx*.4,ey*s+(Math.random()-.5)*70+car.vy*.4,gasCol(),.55+I*.7+Math.random()*.4)}
   };
   if(m){
-    const thrust=Math.max(0,G+k.ay); // 所需推力 T = m(g + a_y)；緩降時 T 變小但仍向下噴
-    let I=clamp(thrust/(1.6*G));if(u<.1)I*=1+(1-u/.1)*.8;else if(u>.92)I*=1.3;
-    const[dx,dy]=tw(0,-1);jet(-22,-12,dx,dy,clamp(I)*.6);jet(22,-12,dx,dy,clamp(I)*.6);
-    if(m!=='VTOL'&&u<.12){const[bx,by]=tw(-1,0);jet(-36,0,bx,by,.9*(1-u/.12))} // 起跳後噴
-    if(m==='Spin'&&Math.abs(k.alpha)>1.2){ // 姿態控制噴嘴 (RCS)：前後成對產生力矩
+    const Fx=k.ax,Fy=Math.max(0,G+k.ay),mag=Math.hypot(Fx,Fy)||1,Dx2=-Fx/mag,Dy2=-Fy/mag,thrust=mag; // 所需推力 T = m(g + a_y)；緩降時 T 變小但仍向下噴
+    let I=clamp(thrust/(1.6*G));if(m!=='Ramp'){if(u<.1)I*=1+(1-u/.1)*.8;else if(u>.92)I*=1.3}I=clamp(I)*(k.thr==null?1:k.thr);
+    let mw=0;for(const[lx,ly,nx,ny,sc]of[[-22,-12,0,-1,.6],[22,-12,0,-1,.6],[-36,0,-1,0,1],[36,0,1,0,.7],[-10,14,0,1,.6],[10,14,0,1,.6]]){const[ex,ey]=tw(nx,ny),l=Math.hypot(ex,ey)||1,wt=Math.pow(Math.max(0,(ex*Dx2+ey*Dy2)/l),3);mw=Math.max(mw,wt);if(wt>.04)jet(lx,ly,ex,ey,I*wt*sc)}if(mw<.35)jet(0,-12,Dx2,Dy2,I*.5);
+    if(m!=='VTOL'&&m!=='Ramp'&&u<.12){const[bx,by]=tw(-1,0);jet(-36,0,bx,by,.9*(1-u/.12))} // 起跳後噴
+    if((m==='Spin'||m==='Ramp')&&k.thr!==0&&Math.abs(k.alpha)>1.2){ // 姿態控制噴嘴 (RCS)：前後成對產生力矩
       const I2=clamp(Math.abs(k.alpha)/7),sg=Math.sign(k.alpha);
       for(const s of[30,-30]){const[rx,ry]=tw(s,0),l=Math.hypot(rx,ry)||1;jet(s,0,sg*ry/l,-sg*rx/l,I2*.9)}
     }
@@ -270,7 +294,7 @@ function frame(now){
   const raw=Math.min(.05,(now-last)/1000);last=now;const dt=paused?0:raw;
   const k=stepCar(dt);emitAll(dt,k);updP(dt);
   car.face+=(car.dir-car.face)*Math.min(1,raw*9);if(Math.abs(car.face)<.06)car.face=.06*car.dir; // 轉向時車身翻面
-  pivot.position.set(car.x,railY+16+car.h,0);pivot.rotation.z=car.pitch;inner.rotation.x=car.roll;inner.rotation.y=-.3*car.face;inner.scale.x=car.face;
+  pivot.position.set(car.x,railY+16+car.h,0);pivot.rotation.z=car.pitch;inner.rotation.x=car.roll;inner.rotation.y=-.3*car.face*Math.cos(car.roll);inner.scale.x=car.face;
   under.intensity=P.trailGlow?2.2:.8;
   const sy=innerHeight-(railY+16+car.h);car.op+=((Math.abs(sy-titleMid)<70?P.textPassOpacity:1)-car.op)*Math.min(1,raw*10);
   if(wT<1){wT=Math.min(1,wT+raw/.9);const q=sm(wT);pearl.color.copy(wFrom).lerp(wTo,q);pearl.metalness=wF[0]+(wTT[0]-wF[0])*q;pearl.roughness=wF[1]+(wTT[1]-wF[1])*q;pearl.clearcoat=wF[2]+(wTT[2]-wF[2])*q}
@@ -282,8 +306,8 @@ requestAnimationFrame(frame);
 // ===== 按鈕 =====
 const $=id=>document.getElementById(id);
 $('bPause').onclick=()=>{paused=!paused;$('bPause').textContent=paused?'▶️ 繼續 動畫':'⏸️ 暫停/繼續 動畫'};
-$('bGo').onclick=()=>start(pick());
-$('bColor').onclick=recolor;
+$('bGo').onclick=()=>{if(!st.mode)st.queue=pick()};
+$('bColor').onclick=()=>{recolor();P.wrapColor='random';sync()};
 $('bReset').onclick=()=>{P={...DEF};sync();wi=0;wT=1;pearl.color.setHex(0xf6f8fc);pearl.metalness=.35;pearl.roughness=.22;pearl.clearcoat=1;cname.textContent='珍珠白';showModel()};
 $('bCopy').onclick=async()=>{const j=JSON.stringify(P,null,2);try{await navigator.clipboard.writeText(j);$('bCopy').textContent='✅ 已複製'}catch(e){prompt('請手動複製：',j)}setTimeout(()=>$('bCopy').textContent='📋 複製 JSON 設定檔',1500)};
 </script></body></html>
