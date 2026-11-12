@@ -39,6 +39,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
     <button id="bSnap" class="chip sm">📷</button>
     <button data-a="9:16" class="asp chip sm on">9:16</button>
     <button data-a="16:9" class="asp chip sm">16:9</button>
+    <select id="qSel" title="輸出畫質" style="width:auto;padding:4px 8px;font-size:12px"><option value="540" selected>標準畫質</option><option value="720">高畫質</option></select>
     <button id="bMake" class="px-4 py-1.5 rounded-full bg-amber-500 text-neutral-950 font-bold text-sm">🎬 生成影片</button>
     <span id="tm" class="text-xs text-neutral-400"></span>
   </div>
@@ -73,11 +74,18 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
         <div class="h">這個片段</div>
         <div id="vidBox" class="space-y-3">
           <div><label class="l"><span>影片從第幾秒開始</span><span id="vStart"></span></label><input type="range" id="eStart" min="0" max="10" step="0.5"></div>
-          <div><label class="l"><span>播放速度</span><span id="vSpeed"></span></label><input type="range" id="eSpeed" min="0.25" max="4" step="0.05">
-            <div class="flex flex-wrap gap-2 mt-2"><button class="chip sm spd" data-s="0.5">0.5×</button><button class="chip sm spd" data-s="1">1×</button><button class="chip sm spd" data-s="1.5">1.5×</button><button class="chip sm spd" data-s="2">2×</button><button id="bAutoSpd" class="chip sm">📏 依長度自動算速度</button></div></div>
+          <div><label class="l"><span>播放速度</span><span id="vSpeed"></span></label><input type="range" id="eSpeed" min="0.1" max="4" step="0.05">
+            <div class="flex flex-wrap gap-2 mt-2"><button class="chip sm spd" data-s="0.1">0.1×</button><button class="chip sm spd" data-s="0.25">0.25×</button><button class="chip sm spd" data-s="0.5">0.5×</button><button class="chip sm spd" data-s="1">1×</button><button class="chip sm spd" data-s="1.5">1.5×</button><button class="chip sm spd" data-s="2">2×</button><button id="bAutoSpd" class="chip sm">📏 依長度自動算速度</button></div></div>
           <div class="grid grid-cols-2 gap-3 items-end">
             <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="eKeep" class="accent-amber-500"> 保留影片原聲</label>
             <div><label class="l"><span>原聲音量</span><span id="vVol"></span></label><input type="range" id="eVol" min="0" max="100"></div>
+          </div>
+          <div><label class="l"><span>素材不夠長時（把片段拉長）</span></label><select id="eExt"><option value="smart">智慧延長（先放慢，不夠再重播）</option><option value="loop">重複播放</option><option value="freeze">定格在最後一幀</option><option value="none">不延長（最長只到素材結束）</option></select></div>
+          <div class="sub space-y-2">
+            <label class="l"><span>✂️ 分割位置（這一段的第幾秒）</span><span id="vSplit"></span></label>
+            <input type="range" id="eSplitR" min="0.1" max="3" step="0.05" value="1">
+            <div class="flex gap-2 items-center"><button id="spM" class="chip sm">−0.1</button><input type="number" id="eSplit" step="0.1" min="0.1" style="flex:1;text-align:center"><button id="spP" class="chip sm">＋0.1</button><button id="bSplit" class="chip !border-amber-500 !text-amber-300">✂️ 分割</button></div>
+            <p class="text-[11px] text-neutral-500">在秒數框按鍵盤 ↑↓（或 ←→）微調 0.1 秒；Shift 調 1 秒；Alt 調 0.01 秒。預覽畫面會跳到那一格，確認後按「分割」，這一段會變成前後兩段（後段預設硬切，文字留在前段）。</p>
           </div>
         </div>
         <div><label class="l"><span>這一段的長度（也可以拖曳縮圖條）</span><span id="vDur"></span></label><input type="range" id="eDur" min="0.5" max="30" step="0.1"></div>
@@ -104,7 +112,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
           <option value="tornado">🌪️ 龍捲風來襲</option><option value="tsunami">🌊 海嘯淹沒</option><option value="meteor">☄️ 隕石雨轟炸</option><option value="lightning">⚡ 雷雨閃電</option><option value="fire">🔥 熊熊大火</option><option value="ufo">🛸 UFO 綁架牛</option></select></div>
         <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="eQuake" class="accent-amber-500"> 🫨 地震搖晃</label>
       </div>
-      <div class="card"><div class="h">輸出畫質</div><select id="qSel"><option value="540" selected>標準（檔案較小，適合傳 LINE）</option><option value="720">高（較清楚，檔案較大）</option></select></div>
+      
     </div>
 
     <!-- 文字 -->
@@ -112,6 +120,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
       <p class="noClip text-sm text-neutral-400">請先加入影片或照片。</p>
       <div class="card space-y-3 needClip hidden">
         <div class="h">文字方塊</div>
+        <p class="text-[11px] text-neutral-500">預設沒有文字。按下面的「＋本片段文字」或「＋全片文字」新增；選取文字後按鍵盤 Delete 可刪除。</p>
         <div><div class="text-xs text-neutral-400 mb-1">本片段文字（跟著這個片段出現）</div><div id="tChips" class="flex flex-wrap gap-2"></div></div>
         <div><div class="text-xs text-neutral-400 mb-1">全片文字（可以跨好幾個片段）</div><div id="gChips" class="flex flex-wrap gap-2"></div></div>
         <div class="flex flex-wrap gap-2"><button id="bAddT" class="chip !border-amber-500 !text-amber-300">＋本片段文字</button><button id="bAddG" class="chip !border-amber-500 !text-amber-300">＋全片文字</button><button id="bStk" class="chip">＋貼圖</button></div>
@@ -145,6 +154,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
         <p id="mInfo" class="text-xs text-neutral-400">尚未選擇音樂</p>
         <div><label class="l"><span>從音樂的第幾秒開始</span><span id="vMs">0:00</span></label><input type="range" id="mStart" min="0" max="0" step="0.5" value="0"></div>
         <div><label class="l"><span>音樂音量</span><span id="vMv">70%</span></label><input type="range" id="mVol" min="10" max="100" value="70"></div>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="mDuck" class="accent-amber-500" checked> 有影片原聲時，自動壓低背景音樂</label>
         <div class="sub space-y-2">
           <button id="bFitM" class="chip w-full !whitespace-normal">🎯 讓全部片段剛好填滿這段音樂（自動調整長度與影片速度）</button>
           <div class="flex gap-2 items-center"><input type="number" id="bpm" min="40" max="220" placeholder="音樂 BPM（例如 120）" style="flex:1"><button id="bBeat" class="chip">🥁 長度對齊節拍</button></div>
@@ -169,7 +179,7 @@ label.l{display:flex;justify-content:space-between;font-size:11px;color:#a3a3a3;
 const $=id=>document.getElementById(id);
 const cv=$('cv'),mctx=cv.getContext('2d'),T2=2*Math.PI,CF='filter' in mctx;let ctx=mctx;
 const oa=document.createElement('canvas'),ob=document.createElement('canvas');
-let W=540,H=960,asp='9:16',Q=540,clips=[],gTexts=[],sfx=[],sel=-1,selT=-1,selK='c',playing=false,raf=0,T0=0,exp=false,uid=0,mFile=null,mBuf=null,mAud=null,drag=null,TD=.8,actSet=[],gv=1,ivs=0,pac=null,sfxSrc=[],ppsLock=0,ppsCur=24,op=null,startAt=0,PS=0;
+let W=540,H=960,asp='9:16',Q=540,clips=[],gTexts=[],sfx=[],sel=-1,selT=-1,selK='c',playing=false,raf=0,T0=0,exp=false,uid=0,mFile=null,mBuf=null,mAud=null,drag=null,TD=.8,actSet=[],gv=1,ivs=0,pac=null,sfxSrc=[],ppsLock=0,ppsCur=24,op=null,startAt=0,PS=0,prevOff=0,duckF=1;
 const PT=(()=>{let q=7;const r=()=>(q=(q*16807)%2147483647)/2147483647;return Array.from({length:70},()=>({x:r(),y:r(),r:r(),c:1+Math.floor(r()*2),ph:r()*6.28}))})();
 const fmt=x=>Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');
 const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -177,7 +187,11 @@ const r1=x=>Math.round(x*10)/10;
 const OVL=new Set(['dissolve','push','wipe','zoom']);
 function tl(){let t=0;return clips.map((c,i)=>{const od=i>0&&OVL.has(c.tr)?Math.min(TD,clips[i-1].dur/2,c.dur/2):0,s=i?t-od:0;t=s+c.dur;return{s,e:t,od}})}
 const total=()=>clips.length?tl()[clips.length-1].e:0;
-const maxDur=c=>c.type==='video'?Math.max(.5,Math.min(30,(c.vdur-c.start)/c.speed)):30;
+const maxDur=c=>c.type==='video'&&c.ext==='none'?Math.max(.5,Math.min(30,(c.vdur-c.start)/c.speed)):30;
+function eff(c){if(c.type!=='video')return{rate:1,loop:false};const avail=c.vdur-c.start,need=c.dur*c.speed;
+  if(need<=avail+.01||c.ext==='none'||c.ext==='freeze')return{rate:c.speed,loop:false};
+  if(c.ext==='loop')return{rate:c.speed,loop:true};
+  const f=Math.max(.5,avail/need),rate=Math.max(.1,c.speed*f);return{rate,loop:rate*c.dur>avail+.01}}
 const SANS="'Noto Sans TC', sans-serif",SERIF="'Noto Serif TC', serif";
 const newText=(txt,o)=>Object.assign({text:txt,font:SERIF,color:'#ffffff',size:56,x:50,y:50,ta:'fade',stroke:false,bg:false,tIn:0,tOut:99},o||{});
 const cur=()=>clips[sel],curT=()=>selK==='g'?gTexts[selT]:(cur()&&cur().texts[selT]);
@@ -195,7 +209,7 @@ function thumb(c){const draw=()=>{try{const t=document.createElement('canvas');t
   if(c.type==='image')draw();else if(c.el.readyState>=2)draw();else c.el.addEventListener('loadeddata',draw,{once:true})}
 async function addFiles(type,files){
   for(const f of files){
-    const c={id:++uid,type,url:URL.createObjectURL(f),name:f.name,el:null,vdur:0,start:0,dur:3,speed:1,keep:true,vol:100,fit:'cover',filter:'none',tr:'dissolve',dim:20,fx:'none',quake:false,th:'',texts:[newText('在這裡輸入文字')]};
+    const c={id:++uid,type,url:URL.createObjectURL(f),name:f.name,el:null,vdur:0,start:0,dur:3,speed:1,keep:false,vol:100,ext:'smart',fit:'cover',filter:'none',tr:'dissolve',dim:20,fx:'none',quake:false,th:'',texts:[]};
     $('stat').textContent='讀取中：'+f.name;
     if(!(await loadMedia(c))){alert('無法讀取：'+f.name+'（格式可能不支援）');continue}
     if(type==='video')c.dur=Math.max(.5,r1(Math.min(c.vdur,5)));
@@ -246,16 +260,28 @@ function labels(c){$('vDur').textContent=r1(c.dur)+' 秒';$('vStart').textConten
 function syncEditor(){const c=cur();if(!c)return;
   $('vidBox').classList.toggle('hidden',c.type!=='video');
   if(c.type==='video'){$('eStart').max=Math.max(0,c.vdur-.5);$('eStart').value=c.start;$('eSpeed').value=c.speed;$('eKeep').checked=c.keep;$('eVol').value=c.vol}
-  $('eDur').max=maxDur(c);$('eDur').value=c.dur;$('eFit').value=c.fit;$('eFilter').value=c.filter;$('eTr').value=c.tr;$('eDim').value=c.dim;$('eFx').value=c.fx;$('eQuake').checked=c.quake;labels(c)}
+  $('eDur').max=maxDur(c);$('eDur').value=c.dur;$('eFit').value=c.fit;$('eFilter').value=c.filter;$('eTr').value=c.tr;$('eDim').value=c.dim;$('eFx').value=c.fx;$('eQuake').checked=c.quake;if(c.type==='video')$('eExt').value=c.ext;{const sp=r1(c.dur/2);$('eSplit').value=sp;$('eSplitR').max=c.dur;$('eSplitR').value=sp;$('vSplit').textContent=sp+' 秒';prevOff=0}labels(c)}
 function bindC(id,prop,conv,after){$(id).addEventListener('input',e=>{const c=cur();if(!c)return;
   c[prop]=conv(e.target.type==='checkbox'?e.target.checked:e.target.value);if(after)after(c);labels(c);renderStrip();setMusicRange();syncText();redraw()})}
 const num=v=>+v,idf=v=>v;
 const clampDur=c=>{c.dur=Math.min(c.dur,maxDur(c));$('eDur').max=maxDur(c);$('eDur').value=c.dur};
 bindC('eDur','dur',num);bindC('eStart','start',num,clampDur);bindC('eSpeed','speed',num,clampDur);
-bindC('eKeep','keep',idf);bindC('eVol','vol',num);bindC('eFit','fit',idf);bindC('eFilter','filter',idf);bindC('eTr','tr',idf);bindC('eDim','dim',num);bindC('eFx','fx',idf);bindC('eQuake','quake',idf);
+bindC('eExt','ext',idf,clampDur);bindC('eKeep','keep',idf);bindC('eVol','vol',num);bindC('eFit','fit',idf);bindC('eFilter','filter',idf);bindC('eTr','tr',idf);bindC('eDim','dim',num);bindC('eFx','fx',idf);bindC('eQuake','quake',idf);
 document.querySelectorAll('.spd').forEach(b=>b.onclick=()=>{const c=cur();if(!c)return;c.speed=+b.dataset.s;clampDur(c);syncEditor();renderStrip();redraw()});
 $('bAutoSpd').onclick=()=>{const c=cur();if(!c||c.type!=='video')return;
-  c.speed=Math.round(Math.min(4,Math.max(.25,(c.vdur-c.start)/c.dur))*20)/20;clampDur(c);syncEditor();renderStrip();redraw()};
+  c.speed=Math.round(Math.min(4,Math.max(.1,(c.vdur-c.start)/c.dur))*20)/20;clampDur(c);syncEditor();renderStrip();redraw()};
+function setSplit(v){const c=cur();if(!c)return;v=Math.round(Math.max(.1,Math.min(Math.max(.2,c.dur-.1),v))*100)/100;$('eSplit').value=v;$('eSplitR').value=v;$('vSplit').textContent=v+' 秒';prevOff=v;redraw()}
+$('eSplit').addEventListener('change',e=>setSplit(+e.target.value||.1));
+$('eSplit').addEventListener('keydown',e=>{const k=e.key;if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(k))return;e.preventDefault();
+  const st=e.shiftKey?1:e.altKey?.01:.1;setSplit((+e.target.value||0)+((k==='ArrowUp'||k==='ArrowRight')?st:-st))});
+$('eSplitR').addEventListener('input',e=>setSplit(+e.target.value));
+$('spM').onclick=()=>setSplit((+$('eSplit').value||0)-.1);$('spP').onclick=()=>setSplit((+$('eSplit').value||0)+.1);
+function splitClip(){const c=cur(),st=$('stat');if(!c||c.type!=='video')return;const x=Math.round((+$('eSplit').value)*100)/100;
+  if(!(x>=.2&&x<=c.dur-.2)){st.textContent='分割位置太靠近片段的頭或尾（至少要距離 0.2 秒）。';return}
+  const srcAt=c.start+x*eff(c).rate;if(srcAt>=c.vdur-.1){st.textContent='這個位置已經超過影片素材的結尾，無法分割。';return}
+  stop();const d=JSON.parse(JSON.stringify(Object.assign({},c,{el:null,g:null})));d.id=++uid;d.start=Math.round(srcAt*100)/100;d.dur=r1(c.dur-x);d.tr='none';d.texts=[];d.el=newVid(c.url);
+  d.dur=Math.max(.5,Math.min(d.dur,maxDur(d)));c.dur=r1(x);clips.splice(sel+1,0,d);st.textContent=`已在 ${x} 秒處分割成兩段（後段第 ${fmt(d.start)} 秒起）。`;prevOff=0;refreshAll()}
+$('bSplit').onclick=splitClip;
 $('trD').onchange=e=>{TD=+e.target.value;renderStrip();setMusicRange()};
 $('qSel').onchange=e=>{Q=+e.target.value;stop();setSize()};
 
@@ -288,9 +314,13 @@ $('stkRow').onclick=e=>{const b=e.target.closest('button');if(b)addText(b.datase
 $('bSpanClip').onclick=()=>{const t=curT();if(!t||selK!=='g'||sel<0)return;const L=tl()[sel];t.tIn=r1(L.s);t.tOut=r1(L.e)>=total()-.05?99:r1(L.e);syncText();renderStrip();redraw()};
 $('bSpanAll').onclick=()=>{const t=curT();if(!t||selK!=='g')return;t.tIn=0;t.tOut=99;syncText();renderStrip();redraw()};
 $('bCenter').onclick=()=>{const t=curT();if(t){t.x=50;t.y=50;redraw()}};
-$('bDelT').onclick=()=>{if(selT<0)return;if(selK==='g'){gTexts.splice(selT,1);selT=gTexts.length?Math.min(selT,gTexts.length-1):-1;if(selT<0){selK='c';selT=cur()&&cur().texts.length?0:-1}}
+function delText(){if(selT<0||!curT())return;if(selK==='g'){gTexts.splice(selT,1);selT=gTexts.length?Math.min(selT,gTexts.length-1):-1;if(selT<0){selK='c';selT=cur()&&cur().texts.length?0:-1}}
   else{const c=cur();c.texts.splice(selT,1);selT=c.texts.length?Math.min(selT,c.texts.length-1):-1}
-  renderTexts();syncText();renderStrip();redraw()};
+  renderTexts();syncText();renderStrip();redraw()}
+$('bDelT').onclick=delText;
+document.addEventListener('keydown',e=>{if(e.key!=='Delete'&&e.key!=='Backspace')return;const tg=e.target,tn=tg&&tg.tagName;
+  const typing=tn==='TEXTAREA'||tn==='SELECT'||(tn==='INPUT'&&!['range','checkbox','button','color'].includes(tg.type))||(tg&&tg.isContentEditable);
+  if(typing||playing||exp||!curT())return;e.preventDefault();delText()});
 
 // ---------- 畫布拖曳 ----------
 const gVis=t=>{const L=tl()[sel];if(!L)return true;return t===curT()||(t.tIn<L.e&&Math.min(t.tOut,total())>L.s)};
@@ -393,14 +423,14 @@ function drawClip(c,local,i,ed,nf){
     if(a>0){ctx.fillStyle=`rgba(${col},${a})`;ctx.fillRect(0,0,W,H)}}}
 function redraw(){if(playing||exp)return;const c=cur();
   if(!c){ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#171717';ctx.fillRect(0,0,W,H);ctx.fillStyle='#777';ctx.font=`${W*.045}px sans-serif`;ctx.textAlign='center';ctx.fillText('請先加入影片或照片',W/2,H/2);return}
-  if(c.type==='video'&&c.el){if(Math.abs(c.el.currentTime-c.start)>.08){c.el.onseeked=()=>{c.el.onseeked=null;redraw()};c.el.currentTime=c.start;return}}
+  if(c.type==='video'&&c.el){const tg=c.start+prevOff*eff(c).rate;if(Math.abs(c.el.currentTime-tg)>.08){c.el.onseeked=()=>{c.el.onseeked=null;redraw()};c.el.currentTime=tg;return}}
   const L=tl()[sel];drawClip(c,Math.min(c.dur*.6,2.5),sel,true);drawG(L.s+Math.min(c.dur*.6,2.5),true)}
 
 // ---------- 播放引擎 ----------
 const rTo=(cn,fn)=>{const old=ctx;ctx=cn.getContext('2d');fn();ctx=old};
 function setVol(i,f){const c=clips[i];if(exp&&c.g)c.g.gain.value=c.vol/100*f;else if(c.type==='video'&&c.el)c.el.volume=Math.max(0,Math.min(1,c.vol/100*f*gv))}
 function syncActive(act,e,L){clips.forEach((c,j)=>{const on=act.includes(j);
-  if(on&&!actSet.includes(j)&&c.type==='video'){if(!exp){c.el.muted=!c.keep}c.el.playbackRate=c.speed;c.el.currentTime=c.start+Math.max(0,e-L[j].s)*c.speed;c.el.play().catch(()=>{})}
+  if(on&&!actSet.includes(j)&&c.type==='video'){if(!exp){c.el.muted=!c.keep}const ef=eff(c);c.el.playbackRate=ef.rate;c.el.currentTime=c.start+Math.max(0,e-L[j].s)*ef.rate;c.el.play().catch(()=>{})}
   if(!on){if(c.g)c.g.gain.value=0;if(c.type==='video'&&actSet.includes(j))c.el.pause()}});actSet=act.slice()}
 function compose(a,b,e,L){const p=Math.min(1,Math.max(0,(e-L[b].s)/Math.max(.01,L[b].od))),k=p*p*(3-2*p),tr=clips[b].tr;
   rTo(oa,()=>drawClip(clips[a],e-L[a].s,a,false,true));rTo(ob,()=>drawClip(clips[b],e-L[b].s,b,false,true));
@@ -414,16 +444,18 @@ function compose(a,b,e,L){const p=Math.min(1,Math.max(0,(e-L[b].s)/Math.max(.01,
 function frameAt(e){const L=tl(),n=clips.length;let act=[];
   L.forEach((x,i)=>{if(e>=x.s&&(e<x.e||i===n-1))act.push(i)});if(!act.length)act=[n-1];if(act.length>2)act=act.slice(-2);
   syncActive(act,e,L);
+  act.forEach(j=>{const c=clips[j];if(c.type==='video'&&eff(c).loop){const v=c.el;if(v.ended||v.currentTime>=v.duration-.05){v.currentTime=c.start;v.play().catch(()=>{})}}});
   if(act.length===1){setVol(act[0],1);drawClip(clips[act[0]],Math.min(e-L[act[0]].s,clips[act[0]].dur),act[0],false)}
   else compose(act[0],act[1],e,L);
   drawG(e,false)}
+function duckStep(){const t=$('mDuck').checked&&actSet.some(j=>clips[j]&&clips[j].type==='video'&&clips[j].keep&&clips[j].vol>0)?.3:1;duckF+=(t-duckF)*.12;return duckF}
 function musicPlay(off){if(!mAud)return;clearInterval(ivs);mAud.volume=0;mAud.currentTime=+$('mStart').value+(off||0);mAud.play().catch(()=>{})}
 function play(from){if(playing||!clips.length)return;const tot=total();if(typeof from==='number')startAt=from;if(startAt>=tot-.1)startAt=0;
-  playing=true;actSet=[];const off=startAt;T0=performance.now()-off*1000;PS=performance.now();musicPlay(off);
+  playing=true;actSet=[];duckF=1;const off=startAt;T0=performance.now()-off*1000;PS=performance.now();musicPlay(off);
   const ac=ensurePac();sfxSchedule(ac,ac.destination,ac.currentTime+.05,off);
   const loop=()=>{if(!playing)return;const now=performance.now();let e=(now-T0)/1000;
     if(e>=tot){clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});T0=now-startAt*1000;PS=now;e=startAt;actSet=[];musicPlay(startAt);sfxStop();sfxSchedule(ac,ac.destination,ac.currentTime+.05,startAt)}
-    gv=Math.min(1,(now-PS)/400);if(mAud)mAud.volume=$('mVol').value/100*gv;
+    gv=Math.min(1,(now-PS)/400);if(mAud)mAud.volume=Math.min(1,$('mVol').value/100*gv*duckStep());
     frameAt(e);$('tm').textContent=fmt(e)+' / '+fmt(tot);const ph=$('ph');if(ph)ph.style.left=e*ppsCur+'px';raf=requestAnimationFrame(loop)};loop()}
 function stop(){playing=false;gv=1;cancelAnimationFrame(raf);actSet=[];sfxStop();clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});
   if(mAud&&!mAud.paused){const m=mAud;let v=m.volume;clearInterval(ivs);ivs=setInterval(()=>{v-=.12;if(v<=0){clearInterval(ivs);m.pause()}else m.volume=v},16)}updTm();redraw()}
@@ -466,7 +498,7 @@ $('mStart').oninput=e=>{$('vMs').textContent=fmt(+e.target.value)};
 $('mVol').oninput=e=>{$('vMv').textContent=e.target.value+'%';if(mAud)mAud.volume=e.target.value/100};
 $('bFitM').onclick=()=>{const st=$('stat');if(!mAud||!isFinite(mAud.duration)||!clips.length){st.textContent='請先選擇音樂並加入片段。';return}
   stop();const L=Math.max(2,mAud.duration-(+$('mStart').value));for(let it=0;it<4;it++){const f=L/total();
-  clips.forEach(c=>{let d=Math.max(.5,r1(c.dur*f));if(c.type==='video'){const srcLen=c.dur*c.speed;c.speed=Math.round(Math.min(4,Math.max(.25,srcLen/d))*20)/20;d=Math.min(d,maxDur(c))}c.dur=Math.max(.5,d)})}
+  clips.forEach(c=>{let d=Math.max(.5,r1(c.dur*f));if(c.type==='video'){const srcLen=c.dur*c.speed;c.speed=Math.round(Math.min(4,Math.max(.1,srcLen/d))*20)/20;d=Math.min(d,maxDur(c))}c.dur=Math.max(.5,d)})}
   st.textContent=`已調整：影片總長 ${r1(total())} 秒（音樂這段 ${r1(L)} 秒）`;refreshAll()};
 $('bBeat').onclick=()=>{const st=$('stat'),bpm=+$('bpm').value;if(!(bpm>=40&&bpm<=220)){st.textContent='請先輸入 40～220 之間的 BPM。';return}
   stop();const b=60/bpm;clips.forEach(c=>{let d=Math.max(b,Math.round(c.dur/b)*b);d=Math.round(d*100)/100;if(c.type==='video')d=Math.min(d,maxDur(c));c.dur=Math.max(.5,d)});
@@ -492,22 +524,22 @@ async function makeVideo(){
   const mime=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
   if(!mime){st.textContent='此瀏覽器不支援影片格式。';return}
   const fps=24,tot=total();btn.disabled=true;exp=true;
-  const tracks=cv.captureStream(fps).getVideoTracks();let ac=null,dest=null,msrc=null,mg=null;
+  const tracks=cv.captureStream(fps).getVideoTracks();let ac=null,dest=null,msrc=null,mg=null,dg=null;
   if(mFile||sfx.length||clips.some(c=>c.type==='video'&&c.keep)){
     try{ac=new (window.AudioContext||window.webkitAudioContext)();await ac.resume();dest=ac.createMediaStreamDestination();
       clips.forEach(c=>{c.g=null;if(c.type==='video'&&c.keep&&c.el){c.el.muted=false;c.el.volume=1;const s=ac.createMediaElementSource(c.el);c.g=ac.createGain();c.g.gain.value=0;s.connect(c.g);c.g.connect(dest)}});
-      if(mFile){if(!mBuf)mBuf=await ac.decodeAudioData(await mFile.arrayBuffer());msrc=ac.createBufferSource();msrc.buffer=mBuf;mg=ac.createGain();msrc.connect(mg);mg.connect(dest)}
+      if(mFile){if(!mBuf)mBuf=await ac.decodeAudioData(await mFile.arrayBuffer());msrc=ac.createBufferSource();msrc.buffer=mBuf;mg=ac.createGain();dg=ac.createGain();msrc.connect(mg);mg.connect(dg);dg.connect(dest)}
       tracks.push(...dest.stream.getAudioTracks())}
     catch(e){st.textContent='聲音處理失敗，將產生沒有聲音的影片。';ac=null;msrc=null}}
   const rec=new MediaRecorder(new MediaStream(tracks),{mimeType:mime,videoBitsPerSecond:Math.round(W*H*fps*.09),audioBitsPerSecond:96000}),ch=[];
   rec.ondataavailable=e=>{if(e.data.size)ch.push(e.data)};const done=new Promise(r=>rec.onstop=r);
-  actSet=[];rec.start(500);
+  actSet=[];duckF=1;rec.start(500);
   if(ac){const n=ac.currentTime;
     if(msrc){const v=$('mVol').value/100,off=Math.min(+$('mStart').value,Math.max(0,mBuf.duration-.1)),ln=Math.min(tot,mBuf.duration-off);
       mg.gain.setValueAtTime(0,n);mg.gain.linearRampToValueAtTime(v,n+.5);mg.gain.setValueAtTime(v,n+Math.max(.5,ln-.8));mg.gain.linearRampToValueAtTime(0,n+ln);msrc.start(n,off,ln)}
     sfxSchedule(ac,dest,n,0)}
   T0=performance.now();
-  await new Promise(res=>{const loop=()=>{const e=(performance.now()-T0)/1000;if(e>=tot){res();return}frameAt(e);st.textContent=`錄製中 ${Math.round(e)} / ${Math.round(tot)} 秒…`;requestAnimationFrame(loop)};loop()});
+  await new Promise(res=>{const loop=()=>{const e=(performance.now()-T0)/1000;if(e>=tot){res();return}frameAt(e);if(dg)dg.gain.value=duckStep();st.textContent=`錄製中 ${Math.round(e)} / ${Math.round(tot)} 秒…`;requestAnimationFrame(loop)};loop()});
   rec.stop();await done;sfxStop();
   clips.forEach(c=>{if(c.type==='video'&&c.el)c.el.pause()});if(ac)ac.close();
   clips.forEach(c=>{if(c.g){c.el=newVid(c.url);c.g=null}});
